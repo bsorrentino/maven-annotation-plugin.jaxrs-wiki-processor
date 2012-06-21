@@ -1,0 +1,28 @@
+
+h2. Table Of Contents 
+
+{POC}
+
+h2. Introduction
+
+This page contains all Object's properties  that is possible to use within GPWS
+
+h3. Note For Developer 
+{tip:title=PSDK imported packages and object}
+Actually the following packages are implicit imported:
+
+* com.genesyslab.platform.configuration.protocol.types
+* com.genesyslab.platform.commons.collections
+* com.genesyslab.platform.applicationblocks.com.objects
+* com.genesyslab.platform.applicationblocks.com.queries
+
+{tip}
+
+
+h2. ${object}
+
+|| method || params || result || description ||
+<!-- $BeginBlock methods -->| ${name} | ${params} | ${result} | ${description} |
+<!-- $EndBlock methods -->
+
+ 
