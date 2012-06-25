@@ -54,7 +54,7 @@ public class JAXRSWikiProcessor extends AbstractProcessor {
 	private static final String SERVICE_CONSUMES_VAR = "service.consumes";
 	private static final String SERVICE_PRODUCES_VAR = "service.produces";
 	private static final String SERVICE_VERB_VAR = "service.verb";
-	private static final String SERVICE_VERSION_VAR = "service.version";
+	private static final String SERVICE_SINCE_VAR = "service.since";
 	private static final String SERVICE_DESCRIPTION_VAR = "service.description";
 
 	protected void info( String msg ) {
@@ -241,11 +241,12 @@ public class JAXRSWikiProcessor extends AbstractProcessor {
 		
 		javax.ws.rs.Path subPath = ee.getAnnotation(javax.ws.rs.Path.class);
 		
+		ServiceDocumentation sdoc = ee.getAnnotation(ServiceDocumentation.class);
 		
 		t.setVariable(SERVICE_NAME_VAR, ee.getSimpleName().toString(), false);
 		
-		t.setVariable(SERVICE_DESCRIPTION_VAR, "", true);
-		t.setVariable(SERVICE_VERSION_VAR, "", true);
+		t.setVariable(SERVICE_DESCRIPTION_VAR, (sdoc!=null) ? sdoc.value() : "", true);
+		t.setVariable(SERVICE_SINCE_VAR, (sdoc!=null) ? sdoc.since() : "", true);
 		
 		{
 			Deprecated deprecated = ee.getAnnotation(Deprecated.class);
@@ -330,6 +331,7 @@ public class JAXRSWikiProcessor extends AbstractProcessor {
 		
 		for(  VariableElement ve : ee.getParameters()) {
 			
+			ParameterDocumentation pdoc = ee.getAnnotation(ParameterDocumentation.class);
 
 			DefaultValue dv = ve.getAnnotation(DefaultValue.class);
 
@@ -339,6 +341,7 @@ public class JAXRSWikiProcessor extends AbstractProcessor {
 			if( qp != null ) {
 				t.setVariableOpt("param.name", qp.value());
 				t.setVariableOpt("param.default", (dv!=null) ?dv.value() : "");
+				t.setVariableOpt("param.description", (pdoc!=null) ? pdoc.value() : "");
 				t.addBlock("parameters");
 			}
 			else {
@@ -346,6 +349,7 @@ public class JAXRSWikiProcessor extends AbstractProcessor {
 				if( fp!= null ) {
 					t.setVariableOpt("param.name", fp.value());			
 					t.setVariableOpt("param.default", (dv!=null) ?dv.value() : "");
+					t.setVariableOpt("param.description", (pdoc!=null) ? pdoc.value() : "");
 					t.addBlock("parameters");
 				}
 			}

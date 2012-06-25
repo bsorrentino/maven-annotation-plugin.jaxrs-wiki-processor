@@ -5,7 +5,7 @@ h1. SERVICES
 \\
 <!-- $BeginBlock services -->h2. ${service.name}
 |*Description:* | ${service.description} |
-| *Since:* |  ${service.version} |
+| *Since:* |  ${service.since} |
 | *Notes:* |  ${service.notes} |
 | *Security:* |  ${service.security} |
 | *Usage:* | ${service.verb}  ${service.path} | 
@@ -13,7 +13,7 @@ h1. SERVICES
 | *Produces:* | ${service.produces} |
 | *Parameters* | {quote}
 || name || default || description ||
-<!-- $BeginBlock parameters -->| ${param.name} | ${param.default} | |
+<!-- $BeginBlock parameters -->| ${param.name} | ${param.default} | ${param.description} |
 <!-- $EndBlock parameters -->
 {quote}|
 \\
