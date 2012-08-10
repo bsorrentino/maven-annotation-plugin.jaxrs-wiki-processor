@@ -6,6 +6,8 @@
 package org.bsc.jaxrs;
 
 import java.io.IOException;
+import java.net.MalformedURLException;
+import java.net.URISyntaxException;
 import java.util.Arrays;
 import java.util.Set;
 
@@ -41,10 +43,11 @@ import biz.source_code.miniTemplator.MiniTemplator;
 @SupportedSourceVersion(SourceVersion.RELEASE_6)
 //@SupportedAnnotationTypes( {"javax.ws.rs.Path"})
 @SupportedAnnotationTypes( {"javax.ws.rs.GET", "javax.ws.rs.PUT", "javax.ws.rs.POST", "javax.ws.rs.DELETE"})
-@SupportedOptions( {"subfolder", "filepath"})
+@SupportedOptions( {"subfolder", "filepath", "templateUri"})
 public class JAXRSWikiProcessor extends AbstractProcessor {
 
-    private static final String SERVICE_NAME_VAR = "service.name";
+    private static final String TEMPLATEURI_OPTION = "templateUri";
+	private static final String SERVICE_NAME_VAR = "service.name";
 	private static final String FILEPATH_OPTION = "filepath";
 	private static final String SUBFOLDER_OPTION = "subfolder";
 	private static final String SERVICES_BLOCK = "services";
@@ -161,7 +164,62 @@ public class JAXRSWikiProcessor extends AbstractProcessor {
 
         java.util.Map<String,String> optionMap = processingEnv.getOptions();
         
-        java.net.URL template = getClass().getClassLoader().getResource("ConfluenceWikiTemplate.txt");
+        java.net.URL template = null;
+        
+        String templateUri = optionMap.get(TEMPLATEURI_OPTION);
+        if( templateUri==null ) {
+        	info("not template defined. Default is used!");
+            template = getClass().getClassLoader().getResource("ConfluenceWikiTemplate.txt");
+        }
+        else {
+        	
+        	try {
+				java.net.URI templateURI = new java.net.URI(templateUri);
+				
+				String scheme = templateURI.getScheme();
+				String path = templateURI.getPath();
+				
+				if( path == null ){
+		        	String msg = String.format("option '%s' path is null!", TEMPLATEURI_OPTION);
+					error(msg);
+		        	throw new IllegalArgumentException(msg);
+				}
+				
+				if( "file".compareToIgnoreCase(scheme)==0 ) {
+								
+					info( String.format("use template [%s]", path) );
+					
+					java.io.File source = new java.io.File(path);
+					
+					template = source.toURI().toURL();
+					
+				}
+				else if( "classpath".compareToIgnoreCase(scheme)==0) {
+
+					path = (path.startsWith("/")) ? path.substring(1) : path;
+					
+					info( String.format("use template [%s]", path) );
+					
+			         template = getClass().getClassLoader().getResource( path );
+				}
+				else {
+		        	String msg = String.format("option '%s' scheme [%s] not supported!", TEMPLATEURI_OPTION, scheme);
+					error(msg);
+		        	throw new IllegalArgumentException(msg);
+					
+				}
+				
+			} catch (URISyntaxException e) {
+	        	String msg = String.format("option '%s' path is invalid!", TEMPLATEURI_OPTION);
+				error(msg);
+	        	throw new IllegalArgumentException(msg);
+			} catch (MalformedURLException e) {
+	        	String msg = String.format("option '%s' path is invalid!", TEMPLATEURI_OPTION);
+				error(msg);
+	        	throw new IllegalArgumentException(msg);
+			}
+        }
+        
 
         if( template==null ) {
             error( "no template found!");
