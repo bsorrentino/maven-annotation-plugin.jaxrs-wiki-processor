@@ -33,6 +33,13 @@ import javax.ws.rs.Produces;
 import javax.ws.rs.QueryParam;
 
 import biz.source_code.miniTemplator.MiniTemplator;
+import com.sun.javadoc.Doclet;
+import com.thoughtworks.qdox.JavaDocBuilder;
+import com.thoughtworks.qdox.model.DocletTag;
+import com.thoughtworks.qdox.model.JavaClass;
+import com.thoughtworks.qdox.model.JavaMethod;
+import com.thoughtworks.qdox.model.Type;
+import java.util.Iterator;
 
 /**
  *
@@ -136,7 +143,6 @@ public class JAXRSWikiProcessor extends AbstractProcessor {
         								subfolder, 
         								filePath, 
         								e);
-
         return res;
     }
     
@@ -158,11 +164,15 @@ public class JAXRSWikiProcessor extends AbstractProcessor {
     	
     }
     
+    com.sun.source.util.Trees trees;
+    
     @Override
     public boolean process(Set<? extends TypeElement> annotations, RoundEnvironment roundEnv) {
         if (roundEnv.processingOver())      return false;
 
         java.util.Map<String,String> optionMap = processingEnv.getOptions();
+        
+        trees = com.sun.source.util.Trees.instance(processingEnv);
         
         java.net.URL template = null;
         
@@ -173,51 +183,49 @@ public class JAXRSWikiProcessor extends AbstractProcessor {
         }
         else {
         	
-        	try {
-				java.net.URI templateURI = new java.net.URI(templateUri);
-				
-				String scheme = templateURI.getScheme();
-				String path = templateURI.getPath();
-				
-				if( path == null ){
-		        	String msg = String.format("option '%s' path is null!", TEMPLATEURI_OPTION);
-					error(msg);
-		        	throw new IllegalArgumentException(msg);
-				}
-				
-				if( "file".compareToIgnoreCase(scheme)==0 ) {
-								
-					info( String.format("use template [%s]", path) );
-					
-					java.io.File source = new java.io.File(path);
-					
-					template = source.toURI().toURL();
-					
-				}
-				else if( "classpath".compareToIgnoreCase(scheme)==0) {
+            try {
+                java.net.URI templateURI = new java.net.URI(templateUri);
 
-					path = (path.startsWith("/")) ? path.substring(1) : path;
-					
-					info( String.format("use template [%s]", path) );
-					
-			         template = getClass().getClassLoader().getResource( path );
-				}
-				else {
-		        	String msg = String.format("option '%s' scheme [%s] not supported!", TEMPLATEURI_OPTION, scheme);
-					error(msg);
-		        	throw new IllegalArgumentException(msg);
-					
-				}
-				
-			} catch (URISyntaxException e) {
-	        	String msg = String.format("option '%s' path is invalid!", TEMPLATEURI_OPTION);
-				error(msg);
-	        	throw new IllegalArgumentException(msg);
-			} catch (MalformedURLException e) {
-	        	String msg = String.format("option '%s' path is invalid!", TEMPLATEURI_OPTION);
-				error(msg);
-	        	throw new IllegalArgumentException(msg);
-			}
+                String scheme = templateURI.getScheme();
+                String path = templateURI.getPath();
+
+                if (path == null) {
+                    String msg = String.format("option '%s' path is null!", TEMPLATEURI_OPTION);
+                    error(msg);
+                    throw new IllegalArgumentException(msg);
+                }
+
+                if ("file".compareToIgnoreCase(scheme) == 0) {
+
+                    info(String.format("use template [%s]", path));
+
+                    java.io.File source = new java.io.File(path);
+
+                    template = source.toURI().toURL();
+
+                } else if ("classpath".compareToIgnoreCase(scheme) == 0) {
+
+                    path = (path.startsWith("/")) ? path.substring(1) : path;
+
+                    info(String.format("use template [%s]", path));
+
+                    template = getClass().getClassLoader().getResource(path);
+                } else {
+                    String msg = String.format("option '%s' scheme [%s] not supported!", TEMPLATEURI_OPTION, scheme);
+                    error(msg);
+                    throw new IllegalArgumentException(msg);
+
+                }
+
+            } catch (URISyntaxException e) {
+                String msg = String.format("option '%s' path is invalid!", TEMPLATEURI_OPTION);
+                error(msg);
+                throw new IllegalArgumentException(msg);
+            } catch (MalformedURLException e) {
+                String msg = String.format("option '%s' path is invalid!", TEMPLATEURI_OPTION);
+                error(msg);
+                throw new IllegalArgumentException(msg);
+            }
         }
         
 
@@ -227,7 +235,7 @@ public class JAXRSWikiProcessor extends AbstractProcessor {
         }
 
         try {
-			final MiniTemplator t = new MiniTemplator( template );
+		final MiniTemplator t = new MiniTemplator( template );
             
         	for( TypeElement e : annotations ) {
     	     	
@@ -269,151 +277,231 @@ public class JAXRSWikiProcessor extends AbstractProcessor {
             
             w.close();
 	
-		} catch (Exception e) {
-			error("error processing template", e);
-			return false;
-		}
+        } catch (Exception e) {
+                error("error processing template", e);
+                return false;
+        }
         
         return true;
     }
+
+    /**
+     * 
+     * @param typeElement
+     * @return 
+     */
+    String getFullClassName( Element typeElement ) {
+     
+        if( typeElement instanceof TypeElement  ) {
+            
+            return ((TypeElement)typeElement).getQualifiedName().toString();
+        }
+        
+        return typeElement.getSimpleName().toString();
+    }
     
     /**
-	
-	<!-- $BeginBlock services -->| *Description:* | ${service.description} |
-	| *Since:* |  ${service.version} |
-	| *Notes:* |  ${service.notes} |
-	| *Security:* |  ${service.security} |
-	| *Usage:* | ${service.verb} ${service.path} | 
-	| *Consumes* | ${service.consumes} |
-	| *Produces:* | ${service.produces} |
-
      * 
+     * @param enclosingEement 
+     */
+    void processDocletForElement( MiniTemplator t, Element enclosingElement, ExecutableElement methodElement ) throws IOException {
+        
+        com.sun.source.util.TreePath treePath = trees.getPath(enclosingElement);
+
+        FileObject sourceFile = treePath.getCompilationUnit().getSourceFile();
+
+        System.out.printf("\n\nSOURCE FILE [%s]\n\n", sourceFile.toUri());
+
+        JavaDocBuilder builder = new JavaDocBuilder();
+        builder.addSource( new java.io.File(sourceFile.toUri().toString()) );
+        
+        final String fqn = getFullClassName(enclosingElement);
+        
+        System.out.printf("CLASS [%s]\n", fqn );
+        
+        JavaClass clazz = builder.getClassByName( fqn );
+        
+        java.util.List<? extends VariableElement> paramList = methodElement.getParameters();
+        
+        Type paramTypes[] = new Type[ paramList.size() ];
+        
+        System.out.printf("METHOD [%s]\n", methodElement.getSimpleName().toString());
+
+        int i = 0; 
+        for( VariableElement ve : paramList ) {                     
+            System.out.printf("PARAM [%s]\n", ve.getSimpleName().toString());
+            paramTypes[i++] = new Type( ve.getSimpleName().toString(), 0);
+        }
+
+        JavaMethod method = clazz.getMethodBySignature(methodElement.getSimpleName().toString(), paramTypes);
+        
+        if( method ==null ) {
+            final String methodName = methodElement.getSimpleName().toString();
+            for( JavaMethod m : clazz.getMethods() ) {
+                System.out.printf("METHOD [%s]\n", m.getName());
+                if( methodName.equals(m.getName())) {
+                    method = m;
+                    break;
+                }
+            }
+        }
+        
+        System.out.printf( "DOCLET COMMENT [%s]\n", method.getComment() );
+        
+        DocletTag doclet[] = method.getTagsByName("param");
+        
+        if( doclet!=null ) {
+                        
+            for( DocletTag tag : doclet ) {
+                System.out.printf( "DOCLET [%s] [%s] [%s]\n", tag.getName(), tag.getValue(), tag.getParameters()[0] );
+            }
+        }
+    }
+    
+    /**
+     *
+     * <!-- $BeginBlock services -->| *Description:* | ${service.description} |
+     * | *Since:* | ${service.version} | | *Notes:* | ${service.notes} | |
+     * *Security:* | ${service.security} | | *Usage:* | ${service.verb}
+     * ${service.path} | | *Consumes* | ${service.consumes} | | *Produces:* |
+     * ${service.produces} |
+     *
+     *
      * @param theClass
      * @param ee
      */
-	private void processService(MiniTemplator t, ExecutableElement ee) {
-		
-		Element enclosingEement = ee.getEnclosingElement();
-		
-		javax.ws.rs.Path path = enclosingEement.getAnnotation(javax.ws.rs.Path.class);
-		
-		javax.ws.rs.Path subPath = ee.getAnnotation(javax.ws.rs.Path.class);
-		
-		ServiceDocumentation sdoc = ee.getAnnotation(ServiceDocumentation.class);
-		
-		t.setVariable(SERVICE_NAME_VAR, ee.getSimpleName().toString(), false);
-		
-		t.setVariable(SERVICE_DESCRIPTION_VAR, (sdoc!=null) ? sdoc.value() : "", true);
-		t.setVariable(SERVICE_SINCE_VAR, (sdoc!=null) ? sdoc.since() : "", true);
-		
-		{
-			Deprecated deprecated = ee.getAnnotation(Deprecated.class);
-			if( deprecated!=null ) {
-				t.setVariable(SERVICE_NOTES_VAR, "DEPRECATED", true);		
-			}
-			else {
-				t.setVariable(SERVICE_NOTES_VAR, "", true);
-			}
-		}
-		t.setVariable(SERVICE_SECURITY_VAR, "", true);
+    private void processService(MiniTemplator t, ExecutableElement ee)  {
 
-		{
-			Object verb;
-			
-			verb = ee.getAnnotation(javax.ws.rs.GET.class);
-			if( verb != null ) t.setVariable(SERVICE_VERB_VAR, "GET", false);
-			else {
-				verb = ee.getAnnotation(javax.ws.rs.POST.class);
-				if( verb != null ) t.setVariable(SERVICE_VERB_VAR, "POST", false);
-				else {
+        Element enclosingEement = ee.getEnclosingElement();
+        try {
+            processDocletForElement(t, enclosingEement, ee);
+        } catch (IOException ex) {
+            warn("error processing doclet", ex);
+        }
+        
+        javax.ws.rs.Path path = enclosingEement.getAnnotation(javax.ws.rs.Path.class);
 
-					verb = ee.getAnnotation(javax.ws.rs.PUT.class);
-					if( verb != null ) t.setVariable(SERVICE_VERB_VAR, "PUT", false);
-					else {
+        javax.ws.rs.Path subPath = ee.getAnnotation(javax.ws.rs.Path.class);
 
-						verb = ee.getAnnotation(javax.ws.rs.DELETE.class);
-						if( verb != null ) t.setVariable(SERVICE_VERB_VAR, "DELETE", false);
-					
-					}	
-				}
-			}
-		}
-		
-		{
-			
-			Produces produces = ee.getAnnotation(Produces.class);
-			
-			if( produces!= null ) {
+        ServiceDocumentation sdoc = ee.getAnnotation(ServiceDocumentation.class);
 
-				String value[] = produces.value();
-				
-				t.setVariableOpt(SERVICE_PRODUCES_VAR, escape(Arrays.asList(value).toString()) );
-				
-			}
-		
-		}
+        t.setVariable(SERVICE_NAME_VAR, ee.getSimpleName().toString(), false);
 
-		
-		{
-			
-			Consumes consumes = ee.getAnnotation(Consumes.class);
-			
-			if( consumes!= null ) {
-	
-				String value[] = consumes.value();
-				
-				t.setVariableOpt(SERVICE_CONSUMES_VAR, escape(Arrays.asList(value).toString()));
-				
-			}
-		}
-		
-		{
-			StringBuilder sb = new StringBuilder();
-			sb.append(path.value());
-			if( subPath!=null ) sb.append('/').append(subPath.value());
+        t.setVariable(SERVICE_DESCRIPTION_VAR, (sdoc != null) ? sdoc.value() : "", true);
+        t.setVariable(SERVICE_SINCE_VAR, (sdoc != null) ? sdoc.since() : "", true);
 
-			t.setVariable(SERVICE_PATH_VAR, escape(sb.toString()), false);
-			
-			java.util.Map<String,String> vars = t.getVariables();
-			
-			
-			info( String.format("service [%s] verb [%s] path [%s] consumes [%s] produces [%s]", 
-						vars.get(SERVICE_NAME_VAR), 
-						vars.get(SERVICE_VERB_VAR),  
-						vars.get(SERVICE_PATH_VAR),
-						vars.get(SERVICE_CONSUMES_VAR),
-						vars.get(SERVICE_PRODUCES_VAR)
-						));
-		}
-		
-		
-		for(  VariableElement ve : ee.getParameters()) {
-			
-			ParameterDocumentation pdoc = ee.getAnnotation(ParameterDocumentation.class);
+        {
+            Deprecated deprecated = ee.getAnnotation(Deprecated.class);
+            if (deprecated != null) {
+                t.setVariable(SERVICE_NOTES_VAR, "DEPRECATED", true);
+            } else {
+                t.setVariable(SERVICE_NOTES_VAR, "", true);
+            }
+        }
+        t.setVariable(SERVICE_SECURITY_VAR, "", true);
 
-			DefaultValue dv = ve.getAnnotation(DefaultValue.class);
+        {
+            Object verb;
 
-			info( String.format("param [%s] [%s]", ve.getSimpleName(), dv));
-			
-			QueryParam qp = ve.getAnnotation(QueryParam.class);
-			if( qp != null ) {
-				t.setVariableOpt("param.name", qp.value());
-				t.setVariableOpt("param.default", (dv!=null) ?dv.value() : "");
-				t.setVariableOpt("param.description", (pdoc!=null) ? pdoc.value() : "");
-				t.addBlock("parameters");
-			}
-			else {
-				FormParam fp = ve.getAnnotation(FormParam.class);
-				if( fp!= null ) {
-					t.setVariableOpt("param.name", fp.value());			
-					t.setVariableOpt("param.default", (dv!=null) ?dv.value() : "");
-					t.setVariableOpt("param.description", (pdoc!=null) ? pdoc.value() : "");
-					t.addBlock("parameters");
-				}
-			}
-			
-		}
-	}
+            verb = ee.getAnnotation(javax.ws.rs.GET.class);
+            if (verb != null) {
+                t.setVariable(SERVICE_VERB_VAR, "GET", false);
+            } else {
+                verb = ee.getAnnotation(javax.ws.rs.POST.class);
+                if (verb != null) {
+                    t.setVariable(SERVICE_VERB_VAR, "POST", false);
+                } else {
+
+                    verb = ee.getAnnotation(javax.ws.rs.PUT.class);
+                    if (verb != null) {
+                        t.setVariable(SERVICE_VERB_VAR, "PUT", false);
+                    } else {
+
+                        verb = ee.getAnnotation(javax.ws.rs.DELETE.class);
+                        if (verb != null) {
+                            t.setVariable(SERVICE_VERB_VAR, "DELETE", false);
+                        }
+
+                    }
+                }
+            }
+        }
+
+        {
+
+            Produces produces = ee.getAnnotation(Produces.class);
+
+            if (produces != null) {
+
+                String value[] = produces.value();
+
+                t.setVariableOpt(SERVICE_PRODUCES_VAR, escape(Arrays.asList(value).toString()));
+
+            }
+
+        }
+
+
+        {
+
+            Consumes consumes = ee.getAnnotation(Consumes.class);
+
+            if (consumes != null) {
+
+                String value[] = consumes.value();
+
+                t.setVariableOpt(SERVICE_CONSUMES_VAR, escape(Arrays.asList(value).toString()));
+
+            }
+        }
+
+        {
+            StringBuilder sb = new StringBuilder();
+            sb.append(path.value());
+            if (subPath != null) {
+                sb.append('/').append(subPath.value());
+            }
+
+            t.setVariable(SERVICE_PATH_VAR, escape(sb.toString()), false);
+
+            java.util.Map<String, String> vars = t.getVariables();
+
+
+            info(String.format("service [%s] verb [%s] path [%s] consumes [%s] produces [%s]",
+                    vars.get(SERVICE_NAME_VAR),
+                    vars.get(SERVICE_VERB_VAR),
+                    vars.get(SERVICE_PATH_VAR),
+                    vars.get(SERVICE_CONSUMES_VAR),
+                    vars.get(SERVICE_PRODUCES_VAR)));
+        }
+
+
+        for (VariableElement ve : ee.getParameters()) {
+
+            ParameterDocumentation pdoc = ee.getAnnotation(ParameterDocumentation.class);
+
+            DefaultValue dv = ve.getAnnotation(DefaultValue.class);
+
+            info(String.format("param [%s] [%s]", ve.getSimpleName(), dv));
+
+            QueryParam qp = ve.getAnnotation(QueryParam.class);
+            if (qp != null) {
+                t.setVariableOpt("param.name", qp.value());
+                t.setVariableOpt("param.default", (dv != null) ? dv.value() : "");
+                t.setVariableOpt("param.description", (pdoc != null) ? pdoc.value() : "");
+                t.addBlock("parameters");
+            } else {
+                FormParam fp = ve.getAnnotation(FormParam.class);
+                if (fp != null) {
+                    t.setVariableOpt("param.name", fp.value());
+                    t.setVariableOpt("param.default", (dv != null) ? dv.value() : "");
+                    t.setVariableOpt("param.description", (pdoc != null) ? pdoc.value() : "");
+                    t.addBlock("parameters");
+                }
+            }
+
+        }
+    }
 		
 
 

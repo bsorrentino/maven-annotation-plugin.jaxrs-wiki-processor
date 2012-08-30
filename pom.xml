@@ -20,6 +20,12 @@
         <artifactId>jersey-core</artifactId>
         <version>1.11</version>
     </dependency>    
+
+    <dependency>
+        <groupId>com.thoughtworks.qdox</groupId>
+        <artifactId>qdox</artifactId>
+        <version>1.12</version>
+    </dependency>
     
     <dependency>
       <groupId>junit</groupId>
@@ -36,16 +42,56 @@ generate wiki documentation from Jersey (JAXRS) annotations</description>
 <build>
     
 <plugins>
-    	 <plugin>
-			<groupId>org.apache.maven.plugins</groupId>
-			<artifactId>maven-compiler-plugin</artifactId>
-			<version>2.3.2</version>
-			<configuration>
-				<source>1.6</source>
-				<target>1.6</target>
-			</configuration>
-		</plugin>
     
+    <plugin>
+        <groupId>org.apache.maven.plugins</groupId>
+        <artifactId>maven-compiler-plugin</artifactId>
+        <version>2.3.2</version>
+        <configuration>
+            <source>1.6</source>
+            <target>1.6</target>
+        </configuration>
+    </plugin>
+    
+<!-- 
+===================================================================
+PROCESSOR PLUGIN
+===================================================================
+ -->
+
+    <plugin>
+        <groupId>org.bsc.maven</groupId>
+        <artifactId>maven-processor-plugin</artifactId>
+        <version>2.0.7-SNAPSHOT</version>
+        <dependencies>
+        </dependencies>
+        <executions>
+
+            <execution>
+
+                <id>process</id>
+                <goals>
+                        <goal>process-test</goal>
+                </goals>
+                <phase>process-test-classes</phase>
+                <configuration>
+                        
+                        
+                        <failOnError>false</failOnError>
+                        <processors>
+                                <!-- list of processors to use -->
+                            <processor>org.bsc.jaxrs.JAXRSWikiProcessor</processor>
+                        </processors>
+
+                        <options>
+                            <filepath>test.confluence</filepath>
+                        </options>
+                </configuration>
+
+
+            </execution>
+        </executions>
+    </plugin>
     
 </plugins>    
     

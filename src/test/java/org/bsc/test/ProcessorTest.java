@@ -1,5 +1,6 @@
 package org.bsc.test;
 
+import com.thoughtworks.qdox.JavaDocBuilder;
 import java.net.URISyntaxException;
 
 import org.hamcrest.core.Is;
@@ -13,7 +14,8 @@ public class ProcessorTest
 {
 	
 	
-	@Test public void testURI() throws URISyntaxException {
+	@Test 
+        public void testURI() throws URISyntaxException {
 		
 		
 		java.net.URI templateUriClasspath = new java.net.URI( "classpath:/src/test/resources/template.txt");
@@ -29,5 +31,13 @@ public class ProcessorTest
 		Assert.assertThat( templateUriFile.getScheme(), Is.is("file"));
 		
 		Assert.assertThat( templateUriFile.getPath(), Is.is("/src/test/resources/template.txt"));
+	}
+        
+	@Test 
+        public void testDoclet()  {
+    
+            JavaDocBuilder builder = new JavaDocBuilder();
+	
+		
 	}
 }
