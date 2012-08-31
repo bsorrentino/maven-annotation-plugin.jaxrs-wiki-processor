@@ -11,6 +11,7 @@ h1. SERVICES
 | *Usage:* | ${service.verb}  ${service.path} | 
 | *Consumes* | ${service.consumes} |
 | *Produces:* | ${service.produces} |
+| *Response* | ${service.response} |
 | *Parameters* | {quote}
 || name || default || description ||
 <!-- $BeginBlock parameters -->| ${param.name} | ${param.default} | ${param.description} |

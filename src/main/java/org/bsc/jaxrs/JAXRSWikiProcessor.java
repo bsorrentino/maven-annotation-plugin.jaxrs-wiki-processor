@@ -49,20 +49,22 @@ import com.thoughtworks.qdox.model.*;
 public class JAXRSWikiProcessor extends AbstractProcessor {
 
     private static final String TEMPLATEURI_OPTION = "templateUri";
-	private static final String SERVICE_NAME_VAR = "service.name";
-	private static final String FILEPATH_OPTION = "filepath";
-	private static final String SUBFOLDER_OPTION = "subfolder";
-	private static final String SERVICES_BLOCK = "services";
-	private static final String SERVICE_SECURITY_VAR = "service.security";
-	private static final String SERVICE_NOTES_VAR = "service.notes";
-	private static final String SERVICE_PATH_VAR = "service.path";
-	private static final String SERVICE_CONSUMES_VAR = "service.consumes";
-	private static final String SERVICE_PRODUCES_VAR = "service.produces";
-	private static final String SERVICE_VERB_VAR = "service.verb";
-	private static final String SERVICE_SINCE_VAR = "service.since";
-	private static final String SERVICE_DESCRIPTION_VAR = "service.description";
+    private static final String SERVICE_NAME_VAR = "service.name";
+    private static final String FILEPATH_OPTION = "filepath";
+    private static final String SUBFOLDER_OPTION = "subfolder";
+    private static final String SERVICES_BLOCK = "services";
+    private static final String SERVICE_SECURITY_VAR = "service.security";
+    private static final String SERVICE_NOTES_VAR = "service.notes";
+    private static final String SERVICE_PATH_VAR = "service.path";
+    private static final String SERVICE_CONSUMES_VAR = "service.consumes";
+    private static final String SERVICE_PRODUCES_VAR = "service.produces";
+    private static final String SERVICE_VERB_VAR = "service.verb";
+    private static final String SERVICE_SINCE_VAR = "service.since";
+    private static final String SERVICE_DESCRIPTION_VAR = "service.description";
+    private static final String SERVICE_RESPONSE_VAR = "service.response";
+        
 
-	protected void info( String msg ) {
+    protected void info( String msg ) {
         processingEnv.getMessager().printMessage(Kind.NOTE, msg );
     }
 
@@ -412,6 +414,7 @@ public class JAXRSWikiProcessor extends AbstractProcessor {
             t.setVariable(SERVICE_SINCE_VAR, getTagByName(method, "since", ""), true);
 
             t.setVariable(SERVICE_SECURITY_VAR, security, true);
+            t.setVariableOpt(SERVICE_RESPONSE_VAR, getTagByName(method,"return", ""));
         
         }
         

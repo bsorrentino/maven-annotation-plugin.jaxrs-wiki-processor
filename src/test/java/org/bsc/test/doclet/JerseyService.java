@@ -23,12 +23,13 @@ public class JerseyService {
      * @param enabled True|False
      * @since 1.0
      * @deprecated  use service2 instead
+     * @return return generic string
      */
     @GET
     @Deprecated
-    public void service1( String param1, boolean enabled )
+    public String service1( String param1, boolean enabled )
     {
-        
+        return null;
     }
     
 }
