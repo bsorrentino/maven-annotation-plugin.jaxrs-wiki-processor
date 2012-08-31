@@ -33,13 +33,8 @@ import javax.ws.rs.Produces;
 import javax.ws.rs.QueryParam;
 
 import biz.source_code.miniTemplator.MiniTemplator;
-import com.sun.javadoc.Doclet;
 import com.thoughtworks.qdox.JavaDocBuilder;
-import com.thoughtworks.qdox.model.DocletTag;
-import com.thoughtworks.qdox.model.JavaClass;
-import com.thoughtworks.qdox.model.JavaMethod;
-import com.thoughtworks.qdox.model.Type;
-import java.util.Iterator;
+import com.thoughtworks.qdox.model.*;
 
 /**
  *
@@ -302,6 +297,74 @@ public class JAXRSWikiProcessor extends AbstractProcessor {
     
     /**
      * 
+     * @param entity
+     * @param tagName
+     * @param defaultValue
+     * @return 
+     */
+    String getTagByName( AbstractInheritableJavaEntity entity, String tagName, String defaultValue  ) {
+        
+        DocletTag tag = entity.getTagByName(tagName, true);
+        
+        if( tag == null) return defaultValue;
+        
+        return (tag.getValue()!=null) ? tag.getValue() : defaultValue;
+    }
+
+
+    /**
+     * 
+     * @param tags
+     * @param paramName
+     * @return 
+     */
+    DocletTag getParamByName( DocletTag [] tags, String paramName  ) {
+
+        if( tags == null ) return null;
+        
+        for( DocletTag tag : tags ) {
+            
+            final String name = tag.getParameters()[0];
+            if( name.equals(paramName)){
+                return tag;
+            }
+        }
+        
+        return null;
+    }
+    
+    /**
+     * 
+     * @param serviceClass
+     * @param methodElement
+     * @return 
+     */
+    JavaMethod getMethod( JavaClass serviceClass, ExecutableElement methodElement ) {
+        java.util.List<? extends VariableElement> paramList = methodElement.getParameters();
+        
+        Type paramTypes[] = new Type[ paramList.size() ];
+        
+        int i = 0; 
+        for( VariableElement ve : paramList ) {                     
+            paramTypes[i++] = new Type( ve.getSimpleName().toString());
+        }
+
+        JavaMethod method = serviceClass.getMethodBySignature(methodElement.getSimpleName().toString(), paramTypes);
+        
+        if( method ==null ) {
+            final String methodName = methodElement.getSimpleName().toString();
+            for( JavaMethod m : serviceClass.getMethods() ) {
+                if( methodName.equals(m.getName())) {
+                    return m;
+                }
+            }
+        }
+
+        return method;
+    }
+    
+    /**
+     * 
      * @param enclosingEement 
      */
     void processDocletForElement( MiniTemplator t, Element enclosingElement, ExecutableElement methodElement ) throws IOException {
@@ -317,45 +380,83 @@ public class JAXRSWikiProcessor extends AbstractProcessor {
         
         final String fqn = getFullClassName(enclosingElement);
         
-        System.out.printf("CLASS [%s]\n", fqn );
-        
-        JavaClass clazz = builder.getClassByName( fqn );
-        
-        java.util.List<? extends VariableElement> paramList = methodElement.getParameters();
-        
-        Type paramTypes[] = new Type[ paramList.size() ];
-        
-        System.out.printf("METHOD [%s]\n", methodElement.getSimpleName().toString());
+        JavaClass serviceClass = builder.getClassByName( fqn );
 
-        int i = 0; 
-        for( VariableElement ve : paramList ) {                     
-            System.out.printf("PARAM [%s]\n", ve.getSimpleName().toString());
-            paramTypes[i++] = new Type( ve.getSimpleName().toString(), 0);
+        if( serviceClass == null ) {
+            warn( String.format("Service Class [%s] in source [%s] not found!. Doclet processing skipped! ", fqn, sourceFile.toUri().toString()));
+            return;
         }
-
-        JavaMethod method = clazz.getMethodBySignature(methodElement.getSimpleName().toString(), paramTypes);
+        
+        JavaMethod method = getMethod(serviceClass, methodElement);
         
         if( method ==null ) {
-            final String methodName = methodElement.getSimpleName().toString();
-            for( JavaMethod m : clazz.getMethods() ) {
-                System.out.printf("METHOD [%s]\n", m.getName());
-                if( methodName.equals(m.getName())) {
-                    method = m;
-                    break;
+            warn( String.format("Method [%s] of class [%s] in source [%s] not found!. Doclet processing skipped! ", 
+                    methodElement.getSimpleName().toString(), 
+                    fqn, 
+                    sourceFile.toUri().toString()));
+            return;
+        }
+        
+        {
+            final String comment = method.getComment();
+            final String deprecated = getTagByName(method, "deprecated", null);
+            final String security = getTagByName(method, "security", "");
+            
+            if( deprecated!=null ) {
+                t.setVariable(SERVICE_NOTES_VAR, "DEPRECATED " + deprecated, true);
+                
+            }
+            t.setVariable(SERVICE_NAME_VAR, methodElement.getSimpleName().toString(), false);
+
+            t.setVariable(SERVICE_DESCRIPTION_VAR, (comment != null) ? comment : "", true);
+            t.setVariable(SERVICE_SINCE_VAR, getTagByName(method, "since", ""), true);
+
+            t.setVariable(SERVICE_SECURITY_VAR, security, true);
+        
+        }
+        
+        
+        final DocletTag paramTags[] = method.getTagsByName("param");
+        
+        
+        for (VariableElement paramElement : methodElement.getParameters()) {
+
+            final DefaultValue dv = paramElement.getAnnotation(DefaultValue.class);
+            
+            final DocletTag tag = getParamByName(paramTags, paramElement.getSimpleName().toString());
+            
+            final String comment = (tag!=null) ? tag.getValue() : null;
+            
+
+            QueryParam qp = paramElement.getAnnotation(QueryParam.class);
+            if (qp != null) {
+                t.setVariableOpt("param.name", qp.value());
+                t.setVariableOpt("param.default", (dv != null) ? dv.value() : "");
+                t.setVariableOpt("param.description", (comment!=null) ? comment : "" );
+                t.addBlock("parameters");
+                info(String.format("add query param [%s] default [%s]", paramElement.getSimpleName(), dv));
+            } else {
+                FormParam fp = paramElement.getAnnotation(FormParam.class);
+                if (fp != null) {
+                    t.setVariableOpt("param.name", fp.value());
+                    t.setVariableOpt("param.default", (dv != null) ? dv.value() : "");
+                    t.setVariableOpt("param.description", (comment!=null) ? comment : "" );
+                    t.addBlock("parameters");
+                    info(String.format("add form param [%s] default [%s]", paramElement.getSimpleName(), dv));
+                }
+                else {
+                    if( tag!=null ) {
+                        t.setVariableOpt("param.name", tag.getParameters()[0]);
+                        //t.setVariableOpt("param.default", (dv != null) ? dv.value() : "");
+                        t.setVariableOpt("param.description", tag.getValue() );
+                        t.addBlock("parameters");
+                        info(String.format("add param [%s] description [%s]", paramElement.getSimpleName(), tag.getValue()));       
+                    }
                 }
             }
+
         }
-        
-        System.out.printf( "DOCLET COMMENT [%s]\n", method.getComment() );
-        
-        DocletTag doclet[] = method.getTagsByName("param");
-        
-        if( doclet!=null ) {
-                        
-            for( DocletTag tag : doclet ) {
-                System.out.printf( "DOCLET [%s] [%s] [%s]\n", tag.getName(), tag.getValue(), tag.getParameters()[0] );
-            }
-        }
+
     }
     
     /**
@@ -373,22 +474,11 @@ public class JAXRSWikiProcessor extends AbstractProcessor {
     private void processService(MiniTemplator t, ExecutableElement ee)  {
 
         Element enclosingEement = ee.getEnclosingElement();
-        try {
-            processDocletForElement(t, enclosingEement, ee);
-        } catch (IOException ex) {
-            warn("error processing doclet", ex);
-        }
         
         javax.ws.rs.Path path = enclosingEement.getAnnotation(javax.ws.rs.Path.class);
 
         javax.ws.rs.Path subPath = ee.getAnnotation(javax.ws.rs.Path.class);
 
-        ServiceDocumentation sdoc = ee.getAnnotation(ServiceDocumentation.class);
-
-        t.setVariable(SERVICE_NAME_VAR, ee.getSimpleName().toString(), false);
-
-        t.setVariable(SERVICE_DESCRIPTION_VAR, (sdoc != null) ? sdoc.value() : "", true);
-        t.setVariable(SERVICE_SINCE_VAR, (sdoc != null) ? sdoc.since() : "", true);
 
         {
             Deprecated deprecated = ee.getAnnotation(Deprecated.class);
@@ -398,7 +488,6 @@ public class JAXRSWikiProcessor extends AbstractProcessor {
                 t.setVariable(SERVICE_NOTES_VAR, "", true);
             }
         }
-        t.setVariable(SERVICE_SECURITY_VAR, "", true);
 
         {
             Object verb;
@@ -475,32 +564,14 @@ public class JAXRSWikiProcessor extends AbstractProcessor {
                     vars.get(SERVICE_PRODUCES_VAR)));
         }
 
+        
+        try {
+            processDocletForElement(t, enclosingEement, ee);
 
-        for (VariableElement ve : ee.getParameters()) {
-
-            ParameterDocumentation pdoc = ee.getAnnotation(ParameterDocumentation.class);
-
-            DefaultValue dv = ve.getAnnotation(DefaultValue.class);
-
-            info(String.format("param [%s] [%s]", ve.getSimpleName(), dv));
-
-            QueryParam qp = ve.getAnnotation(QueryParam.class);
-            if (qp != null) {
-                t.setVariableOpt("param.name", qp.value());
-                t.setVariableOpt("param.default", (dv != null) ? dv.value() : "");
-                t.setVariableOpt("param.description", (pdoc != null) ? pdoc.value() : "");
-                t.addBlock("parameters");
-            } else {
-                FormParam fp = ve.getAnnotation(FormParam.class);
-                if (fp != null) {
-                    t.setVariableOpt("param.name", fp.value());
-                    t.setVariableOpt("param.default", (dv != null) ? dv.value() : "");
-                    t.setVariableOpt("param.description", (pdoc != null) ? pdoc.value() : "");
-                    t.addBlock("parameters");
-                }
-            }
-
+        } catch (IOException ex) {
+            warn("error processing doclet", ex);
         }
+
     }
 		
 

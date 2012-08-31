@@ -22,8 +22,10 @@ public class JerseyService {
      * @param param1 Test param
      * @param enabled True|False
      * @since 1.0
+     * @deprecated  use service2 instead
      */
     @GET
+    @Deprecated
     public void service1( String param1, boolean enabled )
     {
         
