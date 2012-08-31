@@ -373,7 +373,7 @@ public class JAXRSWikiProcessor extends AbstractProcessor {
 
         FileObject sourceFile = treePath.getCompilationUnit().getSourceFile();
 
-        System.out.printf("\n\nSOURCE FILE [%s]\n\n", sourceFile.toUri());
+        info( String.format("processing doclet for source[%s]", sourceFile.toUri()) );
 
         JavaDocBuilder builder = new JavaDocBuilder();
         builder.addSource( new java.io.File(sourceFile.toUri().toString()) );
