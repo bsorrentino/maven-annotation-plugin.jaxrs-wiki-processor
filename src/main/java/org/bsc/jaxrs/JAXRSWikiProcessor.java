@@ -33,8 +33,13 @@ import javax.ws.rs.Produces;
 import javax.ws.rs.QueryParam;
 
 import biz.source_code.miniTemplator.MiniTemplator;
+
 import com.thoughtworks.qdox.JavaDocBuilder;
-import com.thoughtworks.qdox.model.*;
+import com.thoughtworks.qdox.model.AbstractInheritableJavaEntity;
+import com.thoughtworks.qdox.model.DocletTag;
+import com.thoughtworks.qdox.model.JavaClass;
+import com.thoughtworks.qdox.model.JavaMethod;
+import com.thoughtworks.qdox.model.Type;
 
 /**
  *
