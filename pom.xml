@@ -10,7 +10,16 @@
 
   <properties>
     <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
-  </properties>
+
+<!-- SONATYPE REPO -->
+    <snapshot.repo.id>sonatype-repo</snapshot.repo.id>
+    <snapshot.repo.url>https://oss.sonatype.org/content/repositories/snapshots</snapshot.repo.url>
+    <release.repo.id>sonatype-repo</release.repo.id>
+    <release.repo.url>https://oss.sonatype.org/service/local/staging/deploy/maven2</release.repo.url>
+
+    <release.site.url>svn:https://bsc-documentation-repo.googlecode.com/svn/trunk/maven-annotation-plugin/site</release.site.url>
+    <release.site.id>google-project</release.site.id>
+</properties>
 
     <scm>
         <connection>scm:git:https://bartolomeo.sorrentino@code.google.com/p/maven-annotation-plugin.jaxrs-wiki-processor/ </connection>
