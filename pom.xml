@@ -1,9 +1,10 @@
+<?xml version="1.0" encoding="UTF-8"?>
 <project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
   <modelVersion>4.0.0</modelVersion>
 
   <groupId>org.bsc</groupId>
   <artifactId>jaxrs-wiki-processor</artifactId>
-  <version>1.1-SNAPSHOT</version>
+  <version>1.0</version>
   <packaging>jar</packaging>
 
   <name>jersey-processor - ${project.version}</name>
@@ -22,13 +23,21 @@
 </properties>
 
     <scm>
-        <connection>scm:git:https://bartolomeo.sorrentino@code.google.com/p/maven-annotation-plugin.jaxrs-wiki-processor/ </connection>
-        <developerConnection>scm:git:https://bartolomeo.sorrentino@code.google.com/p/maven-annotation-plugin.jaxrs-wiki-processor/ </developerConnection>
-        <url>https://bartolomeo.sorrentino@code.google.com/p/maven-annotation-plugin.jaxrs-wiki-processor/ </url>
+        <connection>scm:git:https://bartolomeo.sorrentino@code.google.com/p/maven-annotation-plugin.jaxrs-wiki-processor/</connection>
+        <developerConnection>scm:git:https://bartolomeo.sorrentino@code.google.com/p/maven-annotation-plugin.jaxrs-wiki-processor/</developerConnection>
+        <url>https://bartolomeo.sorrentino@code.google.com/p/maven-annotation-plugin.jaxrs-wiki-processor/</url>
     </scm>
 
   <dependencies>
 
+    <dependency>
+        <groupId>jdk</groupId>
+        <artifactId>tools</artifactId>
+        <version>1.7</version>
+        <scope>system</scope>
+        <systemPath>${java.home}/../lib/tools.jar</systemPath>
+    </dependency>    
+      
     <dependency>
         <groupId>com.sun.jersey</groupId>
         <artifactId>jersey-core</artifactId>
@@ -36,21 +45,26 @@
     </dependency>    
 
     <dependency>
-        <groupId>com.thoughtworks.qdox</groupId>
-        <artifactId>qdox</artifactId>
-        <version>1.12</version>
+        <groupId>org.bsc.util</groupId>
+        <artifactId>minitemplator-repackaged</artifactId>
+        <version>1.2</version>
     </dependency>
-    
+
     <dependency>
-      <groupId>junit</groupId>
-      <artifactId>junit</artifactId>
-      <version>4.10</version>
-      <scope>test</scope>
+        <groupId>junit</groupId>
+        <artifactId>junit</artifactId>
+        <version>4.10</version>
+        <scope>test</scope>
+    </dependency>    
+
+    <dependency>
+      <groupId>com.thoughtworks.qdox</groupId>
+      <artifactId>qdox</artifactId>
+      <version>1.12.1</version>
     </dependency>
   </dependencies>
   <inceptionYear>2012</inceptionYear>
-  <description>
-generate wiki documentation from Jersey (JAXRS) annotations</description>
+  <description>generate wiki documentation from Jersey (JAXRS) annotations</description>
 
   
 <build>
@@ -62,8 +76,8 @@ generate wiki documentation from Jersey (JAXRS) annotations</description>
         <artifactId>maven-compiler-plugin</artifactId>
         <version>2.3.2</version>
         <configuration>
-            <source>1.6</source>
-            <target>1.6</target>
+            <source>1.7</source>
+            <target>1.7</target>
         </configuration>
     </plugin>
     
@@ -76,11 +90,8 @@ PROCESSOR PLUGIN
     <plugin>
         <groupId>org.bsc.maven</groupId>
         <artifactId>maven-processor-plugin</artifactId>
-        <version>2.0.6</version>
-        <dependencies>
-        </dependencies>
+        <version>3.1.0</version>
         <executions>
-
             <execution>
 
                 <id>process</id>
@@ -89,8 +100,6 @@ PROCESSOR PLUGIN
                 </goals>
                 <phase>process-test-classes</phase>
                 <configuration>
-                        
-                        
                         <failOnError>false</failOnError>
                         <processors>
                                 <!-- list of processors to use -->
@@ -110,37 +119,6 @@ PROCESSOR PLUGIN
 </plugins>    
     
 	<pluginManagement>
-		<plugins>
-			<!--This plugin's configuration is used to store Eclipse m2e settings only. It has no influence on the Maven build itself.-->
-			<plugin>
-				<groupId>org.eclipse.m2e</groupId>
-				<artifactId>lifecycle-mapping</artifactId>
-				<version>1.0.0</version>
-				<configuration>
-					<lifecycleMappingMetadata>
-						<pluginExecutions>
-							<pluginExecution>
-								<pluginExecutionFilter>
-									<groupId>org.bsc.maven</groupId>
-									<artifactId>
-										maven-processor-plugin
-									</artifactId>
-									<versionRange>
-										[2.0.6,)
-									</versionRange>
-									<goals>
-										<goal>process-test</goal>
-									</goals>
-								</pluginExecutionFilter>
-								<action>
-									<ignore></ignore>
-								</action>
-							</pluginExecution>
-						</pluginExecutions>
-					</lifecycleMappingMetadata>
-				</configuration>
-			</plugin>
-		</plugins>
 	</pluginManagement>
 </build>  
 <distributionManagement>
