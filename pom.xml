@@ -1,3 +1,4 @@
+<?xml version="1.0" encoding="UTF-8"?>
 <project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
   <modelVersion>4.0.0</modelVersion>
 
@@ -22,9 +23,9 @@
 </properties>
 
     <scm>
-        <connection>scm:git:https://bartolomeo.sorrentino@code.google.com/p/maven-annotation-plugin.jaxrs-wiki-processor/ </connection>
-        <developerConnection>scm:git:https://bartolomeo.sorrentino@code.google.com/p/maven-annotation-plugin.jaxrs-wiki-processor/ </developerConnection>
-        <url>https://bartolomeo.sorrentino@code.google.com/p/maven-annotation-plugin.jaxrs-wiki-processor/ </url>
+        <connection>scm:git:https://bartolomeo.sorrentino@code.google.com/p/maven-annotation-plugin.jaxrs-wiki-processor/</connection>
+        <developerConnection>scm:git:https://bartolomeo.sorrentino@code.google.com/p/maven-annotation-plugin.jaxrs-wiki-processor/</developerConnection>
+        <url>https://bartolomeo.sorrentino@code.google.com/p/maven-annotation-plugin.jaxrs-wiki-processor/</url>
     </scm>
 
   <dependencies>
@@ -44,22 +45,22 @@
     </dependency>    
 
     <dependency>
-        <groupId>com.thoughtworks.qdox</groupId>
-        <artifactId>qdox</artifactId>
-        <version>1.12</version>
-    </dependency>
-
-    <dependency>
         <groupId>org.bsc.util</groupId>
         <artifactId>minitemplator-repackaged</artifactId>
         <version>1.2</version>
+    </dependency>
+
+    <dependency>
+        <groupId>junit</groupId>
+        <artifactId>junit</artifactId>
+        <version>4.10</version>
+        <scope>test</scope>
     </dependency>    
 
     <dependency>
-      <groupId>junit</groupId>
-      <artifactId>junit</artifactId>
-      <version>4.10</version>
-      <scope>test</scope>
+      <groupId>com.thoughtworks.qdox</groupId>
+      <artifactId>qdox</artifactId>
+      <version>1.12.1</version>
     </dependency>
   </dependencies>
   <inceptionYear>2012</inceptionYear>
@@ -90,8 +91,6 @@ PROCESSOR PLUGIN
         <groupId>org.bsc.maven</groupId>
         <artifactId>maven-processor-plugin</artifactId>
         <version>3.1.0</version>
-        <dependencies>
-        </dependencies>
         <executions>
             <execution>
 
@@ -120,8 +119,6 @@ PROCESSOR PLUGIN
 </plugins>    
     
 	<pluginManagement>
-		<plugins>
-		</plugins>
 	</pluginManagement>
 </build>  
 <distributionManagement>
