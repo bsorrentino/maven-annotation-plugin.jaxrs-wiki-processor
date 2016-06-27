@@ -78,7 +78,17 @@
             <target>1.7</target>
         </configuration>
     </plugin>
-    
+
+    <plugin>
+        <groupId>external.atlassian.jgitflow</groupId>
+        <artifactId>jgitflow-maven-plugin</artifactId>
+        <version>1.0-m5.1</version>
+        <configuration>
+            <!-- see goals wiki page for configuration options -->
+            <noDeploy>true</noDeploy>
+        </configuration>
+    </plugin>
+        
 <!-- 
 ===================================================================
 PROCESSOR PLUGIN
@@ -114,34 +124,34 @@ PROCESSOR PLUGIN
     
     mvn confluence-reporting:delete -Dconfluence.endPoint=../rpc/xmlrpc -Dconfluence.serverId=..
 
-    -->
-    <plugin>
-        <groupId>org.bsc.maven</groupId>
-        <artifactId>confluence-reporting-maven-plugin</artifactId>
-        <version>4.9.1</version>
-        <configuration>
-          <spaceKey>~bsorrentino</spaceKey>
-          <parentPageTitle>Home</parentPageTitle>
-          <wikiFilesExt>.confluence</wikiFilesExt>
-          <properties></properties>
-          <templateWiki>${project.build.directory}/generated-sources/apt-test/test.confluence</templateWiki>
-        </configuration>
-      </plugin>
+            -->
+            <plugin>
+                <groupId>org.bsc.maven</groupId>
+                <artifactId>confluence-reporting-maven-plugin</artifactId>
+                <version>4.9.1</version>
+                <configuration>
+                    <spaceKey>~bsorrentino</spaceKey>
+                    <parentPageTitle>Home</parentPageTitle>
+                    <wikiFilesExt>.confluence</wikiFilesExt>
+                    <properties></properties>
+                    <templateWiki>${project.build.directory}/generated-sources/apt-test/test.confluence</templateWiki>
+                </configuration>
+            </plugin>
     
-</plugins>    
+        </plugins>    
     
-</build>  
+    </build>  
 
-<distributionManagement>
-	<repository>
-		<id>${release.repo.id}</id>
-		<url>${release.repo.url}</url>
-	</repository>
-	<snapshotRepository>
-		<id>${snapshot.repo.id}</id>
-		<url>${snapshot.repo.url}</url>
-		<uniqueVersion>false</uniqueVersion>
-	</snapshotRepository>
-</distributionManagement>
+    <distributionManagement>
+        <repository>
+            <id>${release.repo.id}</id>
+            <url>${release.repo.url}</url>
+        </repository>
+        <snapshotRepository>
+            <id>${snapshot.repo.id}</id>
+            <url>${snapshot.repo.url}</url>
+            <uniqueVersion>false</uniqueVersion>
+        </snapshotRepository>
+    </distributionManagement>
 
 </project>
