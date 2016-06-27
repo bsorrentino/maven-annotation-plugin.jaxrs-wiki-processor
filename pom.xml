@@ -133,7 +133,7 @@ PROCESSOR PLUGIN
                     <spaceKey>~bsorrentino</spaceKey>
                     <parentPageTitle>Home</parentPageTitle>
                     <wikiFilesExt>.confluence</wikiFilesExt>
-                    <properties></properties>
+                    <properties />
                     <templateWiki>${project.build.directory}/generated-sources/apt-test/test.confluence</templateWiki>
                 </configuration>
             </plugin>
