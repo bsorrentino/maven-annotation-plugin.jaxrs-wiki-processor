@@ -5,51 +5,33 @@
 
 package org.bsc.jaxrs;
 
-import java.io.IOException;
-import java.net.MalformedURLException;
-import java.net.URISyntaxException;
-import java.util.Arrays;
-import java.util.Set;
+import biz.source_code.miniTemplator.MiniTemplator;
+import com.thoughtworks.qdox.JavaDocBuilder;
+import com.thoughtworks.qdox.model.*;
 
-import javax.annotation.processing.AbstractProcessor;
-import javax.annotation.processing.Filer;
-import javax.annotation.processing.RoundEnvironment;
-import javax.annotation.processing.SupportedAnnotationTypes;
-import javax.annotation.processing.SupportedOptions;
-import javax.annotation.processing.SupportedSourceVersion;
+import javax.annotation.processing.*;
 import javax.lang.model.SourceVersion;
-import javax.lang.model.element.Element;
-import javax.lang.model.element.ElementKind;
-import javax.lang.model.element.ExecutableElement;
-import javax.lang.model.element.TypeElement;
-import javax.lang.model.element.VariableElement;
+import javax.lang.model.element.*;
 import javax.tools.Diagnostic.Kind;
 import javax.tools.FileObject;
 import javax.tools.StandardLocation;
 import javax.ws.rs.Consumes;
-import javax.ws.rs.DefaultValue;
-import javax.ws.rs.FormParam;
 import javax.ws.rs.Produces;
-import javax.ws.rs.QueryParam;
-
-import biz.source_code.miniTemplator.MiniTemplator;
-
-import com.thoughtworks.qdox.JavaDocBuilder;
-import com.thoughtworks.qdox.model.AbstractInheritableJavaEntity;
-import com.thoughtworks.qdox.model.DocletTag;
-import com.thoughtworks.qdox.model.JavaClass;
-import com.thoughtworks.qdox.model.JavaMethod;
-import com.thoughtworks.qdox.model.Type;
+import java.io.IOException;
+import java.net.MalformedURLException;
+import java.net.URISyntaxException;
+import java.nio.charset.Charset;
 import java.nio.file.Paths;
+import java.util.Arrays;
+import java.util.Set;
 
 import static java.lang.String.format;
-import java.nio.charset.Charset;
 
 /**
  *
  * @author softphone
- * 
- * 
+ *
+ *
  */
 @SupportedSourceVersion(SourceVersion.RELEASE_7)
 @SupportedAnnotationTypes( {"javax.ws.rs.GET", "javax.ws.rs.PUT", "javax.ws.rs.POST", "javax.ws.rs.DELETE"})
@@ -70,50 +52,57 @@ public class JAXRSWikiProcessor extends AbstractProcessor {
     private static final String SERVICE_SINCE_VAR = "service.since";
     private static final String SERVICE_DESCRIPTION_VAR = "service.description";
     private static final String SERVICE_RESPONSE_VAR = "service.response";
-        
+    private static final String SERVICE_RETURNCODE_VAR = "service.return";
+    private static final String SERVICE_EXCEPTIONS_VAR = "service.exception";
+    private static final String SERVICE_CLASSNAME_VAR = "service.class.name";
+    private static final String SERVICE_RESPONSETYPE_VAR = "service.responsetype";
+    private static final String SERVICE_PARAMNAME_VAR = "param.name";
+    private static final String SERVICE_PARAMTYPE_VAR = "param.type";
+    private static final String SERVICE_PARAMDEFAULT_VAR = "param.default";
+    private static final String SERVICE_SEE_VAR = "service.see";
+    com.sun.source.util.Trees trees;
 
-    protected void info( String fmt, Object...args ) {
-        
-        processingEnv.getMessager().printMessage(Kind.NOTE, format(fmt, (Object[])args) );
+    protected void info(String fmt, Object... args) {
+
+        processingEnv.getMessager().printMessage(Kind.NOTE, format(fmt, (Object[]) args));
     }
 
-    protected void warn( String fmt, Object...args ) {
-        processingEnv.getMessager().printMessage(Kind.WARNING, format(fmt, (Object[])args) );
+    protected void warn(String fmt, Object... args) {
+        processingEnv.getMessager().printMessage(Kind.WARNING, format(fmt, (Object[]) args));
         if( args.length > 0 ) {
             final Object last = args[args.length-1];
             if( last instanceof Throwable ) {
-                ((Throwable)last).printStackTrace(System.err);            
+                ((Throwable) last).printStackTrace(System.err);
             }
         }
     }
 
-    protected void error( String fmt, Object...args ) {
-        processingEnv.getMessager().printMessage(Kind.ERROR, format(fmt, (Object[])args) );
-        if( args.length > 0 ) {
-            final Object last = args[args.length-1];
-            if( last instanceof Throwable ) {
-                ((Throwable)last).printStackTrace(System.err);            
+    protected void error(String fmt, Object... args) {
+        processingEnv.getMessager().printMessage(Kind.ERROR, format(fmt, (Object[]) args));
+        if (args.length > 0) {
+            final Object last = args[args.length - 1];
+            if (last instanceof Throwable) {
+                ((Throwable) last).printStackTrace(System.err);
             }
         }
     }
-
-
+    
     /**
-     * 
+     *
      * @param value
      * @return
      */
-    private String escape( String value ) {
-    	
-    	return value.replace("{", "\\{")
-    				.replace("}", "\\}")
-    				.replace("[", "\\[")
-    				.replace("]", "\\]")
-    				.replace(":)", "\\:\\)");
+    private String escape(String value) {
+
+        return value.replace("{", "\\{")
+                .replace("}", "\\}")
+                .replace("[", "\\[")
+                .replace("]", "\\]")
+                .replace(":)", "\\:\\)");
     }
-    
-     /**
-     * 
+
+    /**
+     *
      * @param filer
      * @return
      * @throws IOException
@@ -121,38 +110,37 @@ public class JAXRSWikiProcessor extends AbstractProcessor {
     protected FileObject getResourceFormClassPath(Filer filer, final String resource, final String packageName) throws IOException {
         FileObject f = filer.getResource(StandardLocation.CLASS_PATH, packageName, resource);
 
-        //java.io.Reader r = f.openReader(true);  // ignoreEncodingErrors 
+        //java.io.Reader r = f.openReader(true);  // ignoreEncodingErrors
         java.io.InputStream is = f.openInputStream();
 
-        if( is==null ) {
+        if (is == null) {
             warn("resource [%s] not found!", resource);
             return null;
         }
-        
+
         return f;
     }
     
-    
     /**
-     * 
+     *
      * @param subfolder subfolder (e.g. confluence)
      * @param filePath relative path (e.g. children/file.wiki)
      * @return
-     * @throws IOException 
+     * @throws IOException
      */
-    protected FileObject getOutputFile( Filer filer, String subfolder, String filePath ) throws IOException {
-        
-    	Element e = null;
-    	FileObject res = 
-        		filer.createResource(StandardLocation.SOURCE_OUTPUT, 
-        								subfolder, 
-        								filePath, 
-        								e);
+    protected FileObject getOutputFile(Filer filer, String subfolder, String filePath) throws IOException {
+
+        Element e = null;
+        FileObject res =
+                filer.createResource(StandardLocation.SOURCE_OUTPUT,
+                        subfolder,
+                        filePath,
+                        e);
         return res;
     }
-    
+
     /**
-     * 
+     *
      * @param e
      * @return
      * @throws ClassNotFoundException
@@ -160,16 +148,14 @@ public class JAXRSWikiProcessor extends AbstractProcessor {
     protected Class<?> getClassFromElement( Element e ) throws ClassNotFoundException {
     	if( null==e ) throw new IllegalArgumentException("e is null!");
     	if( ElementKind.CLASS!=e.getKind() ) throw new IllegalArgumentException( String.format("element [%s] is not a class!", e));
-    	
-    	TypeElement te = (TypeElement) e;
-    	
-    	info( "loading class [%s]", te.getQualifiedName().toString());
-    	
-    	return Class.forName(te.getQualifiedName().toString());
-    	
+
+        TypeElement te = (TypeElement) e;
+
+        info( "loading class [%s]", te.getQualifiedName().toString());
+
+        return Class.forName(te.getQualifiedName().toString());
+
     }
-    
-    com.sun.source.util.Trees trees;
     
     @Override
     public boolean process(Set<? extends TypeElement> annotations, RoundEnvironment roundEnv) {
@@ -370,107 +356,121 @@ public class JAXRSWikiProcessor extends AbstractProcessor {
 
         return method;
     }
-    
+
     /**
-     * 
-     * @param enclosingEement 
+     *
+     * @param enclosingEement
      */
     void processDocletForElement( MiniTemplator t, Element enclosingElement, ExecutableElement methodElement ) throws IOException {
-        
+
         final com.sun.source.util.TreePath treePath = trees.getPath(enclosingElement);
 
         final FileObject sourceFile = treePath.getCompilationUnit().getSourceFile();
 
         final java.net.URI uri = sourceFile.toUri();
-        
+
         info( String.format("processing doclet for source[%s]", uri) );
 
         final JavaDocBuilder builder = new JavaDocBuilder();
-        
+
         builder.addSource( Paths.get(uri).toFile() );
-        
+
         final String fqn = getFullClassName(enclosingElement);
-        
+
         final JavaClass serviceClass = builder.getClassByName( fqn );
 
         if( serviceClass == null ) {
             warn( String.format("Service Class [%s] in source [%s] not found!. Doclet processing skipped! ", fqn, sourceFile.toUri().toString()));
             return;
         }
-        
+
         final JavaMethod method = getMethod(serviceClass, methodElement);
-        
+
         if( method ==null ) {
-            warn("Method [%s] of class [%s] in source [%s] not found!. Doclet processing skipped! ", 
-                    methodElement.getSimpleName().toString(), 
-                    fqn, 
+            warn("Method [%s] of class [%s] in source [%s] not found!. Doclet processing skipped! ",
+                    methodElement.getSimpleName().toString(),
+                    fqn,
                     sourceFile.toUri().toString());
             return;
         }
-        
+
         {
             final String comment = method.getComment();
             final String deprecated = getTagByName(method, "deprecated", null);
             final String security = getTagByName(method, "security", "");
-            
+
             if( deprecated!=null ) {
                 t.setVariable(SERVICE_NOTES_VAR, "DEPRECATED " + deprecated, true);
-                
+
             }
+            t.setVariable(SERVICE_CLASSNAME_VAR, method.getParentClass().toString(), false);
             t.setVariable(SERVICE_NAME_VAR, methodElement.getSimpleName().toString(), false);
 
             t.setVariable(SERVICE_DESCRIPTION_VAR, (comment != null) ? comment : "", true);
             t.setVariable(SERVICE_SINCE_VAR, getTagByName(method, "since", ""), true);
 
             t.setVariable(SERVICE_SECURITY_VAR, security, true);
-            t.setVariableOpt(SERVICE_RESPONSE_VAR, getTagByName(method,"return", ""));
-        
-        }
-        
-        
-        final DocletTag paramTags[] = method.getTagsByName("param");
-        
-        
-        for (VariableElement paramElement : methodElement.getParameters()) {
 
-            final DefaultValue dv = paramElement.getAnnotation(DefaultValue.class);
-            
-            final DocletTag tag = getParamByName(paramTags, paramElement.getSimpleName().toString());
-            
-            final String comment = (tag!=null) ? tag.getValue() : null;
-            
+            t.setVariableOpt(SERVICE_RESPONSETYPE_VAR, method.getReturnType().getValue());
 
-            QueryParam qp = paramElement.getAnnotation(QueryParam.class);
-            if (qp != null) {
-                t.setVariableOpt("param.name", qp.value());
-                t.setVariableOpt("param.default", (dv != null) ? dv.value() : "");
-                t.setVariableOpt("param.description", (comment!=null) ? comment : "" );
-                t.addBlock("parameters");
-                info("add query param [%s] default [%s]", paramElement.getSimpleName(), dv);
-            } else {
-                FormParam fp = paramElement.getAnnotation(FormParam.class);
-                if (fp != null) {
-                    t.setVariableOpt("param.name", fp.value());
-                    t.setVariableOpt("param.default", (dv != null) ? dv.value() : "");
-                    t.setVariableOpt("param.description", (comment!=null) ? comment : "" );
-                    t.addBlock("parameters");
-                    info("add form param [%s] default [%s]", paramElement.getSimpleName(), dv);
-                }
-                else {
-                    if( tag!=null ) {
-                        t.setVariableOpt("param.name", tag.getParameters()[0]);
-                        //t.setVariableOpt("param.default", (dv != null) ? dv.value() : "");
-                        t.setVariableOpt("param.description", tag.getValue() );
-                        t.addBlock("parameters");
-                        info("add param [%s] description [%s]", paramElement.getSimpleName(), tag.getValue());       
-                    }
-                }
-            }
+            populateParamDefault(method.getReturnType(), t, SERVICE_RESPONSE_VAR);
+
+            t.setVariableOpt(SERVICE_RETURNCODE_VAR, getTagByName(method, "return", ""));
+            //populate exceptions
+            populateExceptions(method.getExceptions(), t, method);
+            //populate see
+            populateSeeTag(t, method);
+            //populate input parameters
+            populateInputParameters(t, method);
 
         }
+
+
+        // Below code is commented so that we can avoid taking parameters info from documentation comments
+
+
+        // final DocletTag paramTags[] = method.getTagsByName("param");
+
+//        for (VariableElement paramElement : methodElement.getParameters()) {
+//
+//            final DefaultValue dv = paramElement.getAnnotation(DefaultValue.class);
+//
+//            final DocletTag tag = getParamByName(paramTags, paramElement.getSimpleName().toString());
+//
+//            final String comment = (tag!=null) ? tag.getValue() : null;
+
+//            QueryParam qp = paramElement.getAnnotation(QueryParam.class);
+//            if (qp != null) {
+//                t.setVariableOpt("param.name", qp.value());
+//                t.setVariableOpt("param.type", (dv != null) ? dv.value() : "");
+//                t.setVariableOpt("param.description", (comment!=null) ? comment : "" );
+//                t.addBlock("parameters");
+//                info("add query param [%s] default [%s]", paramElement.getSimpleName(), dv);
+//            } else {
+//                FormParam fp = paramElement.getAnnotation(FormParam.class);
+//                if (fp != null) {
+//                    t.setVariableOpt("param.name", fp.value());
+//                    t.setVariableOpt("param.type", (dv != null) ? dv.value() : "");
+//                    t.setVariableOpt("param.description", (comment!=null) ? comment : "" );
+//                    t.addBlock("parameters");
+//                    info("add form param [%s] default [%s]", paramElement.getSimpleName(), dv);
+//                }
+// donot want params to be taken from tag Durga
+// else {
+//                    if( tag!=null ) {
+//                        t.setVariableOpt("param.name", tag.getParameters()[0]);
+//                        t.setVariableOpt("param.default", (dv != null) ? dv.value() : "");
+//                        t.setVariableOpt("param.description", tag.getValue() );
+//                        t.addBlock("parameters");
+//                        info("add param [%s] description [%s]", paramElement.getSimpleName(), tag.getValue());
+//                    }
+//               }
+//            }
+
+        //   }
 
     }
-    
+
     /**
      *
      * <!-- $BeginBlock services -->| *Description:* | ${service.description} |
@@ -486,7 +486,7 @@ public class JAXRSWikiProcessor extends AbstractProcessor {
     private void processService(MiniTemplator t, ExecutableElement ee)  {
 
         Element enclosingEement = ee.getEnclosingElement();
-        
+
         javax.ws.rs.Path path = enclosingEement.getAnnotation(javax.ws.rs.Path.class);
 
         javax.ws.rs.Path subPath = ee.getAnnotation(javax.ws.rs.Path.class);
@@ -560,10 +560,12 @@ public class JAXRSWikiProcessor extends AbstractProcessor {
             StringBuilder sb = new StringBuilder();
             sb.append(path.value());
             if (subPath != null) {
-                sb.append('/').append(subPath.value());
+                //if we add / here it shows as //
+                sb.append(subPath.value());
             }
-
-            t.setVariable(SERVICE_PATH_VAR, escape(sb.toString()), false);
+            //replacing { with HTML readable by confluence otherwise confluence is considering it as macros and giving error
+            String servicePath = sb.toString().replace("{", "&#123;").replace("}", "&#125;");
+            t.setVariable(SERVICE_PATH_VAR, escape(servicePath), false);
 
             java.util.Map<String, String> vars = t.getVariables();
 
@@ -576,7 +578,7 @@ public class JAXRSWikiProcessor extends AbstractProcessor {
                     vars.get(SERVICE_PRODUCES_VAR));
         }
 
-        
+
         try {
             processDocletForElement(t, enclosingEement, ee);
 
@@ -585,7 +587,64 @@ public class JAXRSWikiProcessor extends AbstractProcessor {
         }
 
     }
-		
+
+    private void populateParamDefault(Type eachJavaParameterType, MiniTemplator t, String variableOptName) {
+        if (eachJavaParameterType.isPrimitive() || (eachJavaParameterType.getValue().equalsIgnoreCase("java.lang.String"))) {
+            t.setVariableOpt(variableOptName, eachJavaParameterType.getGenericValue());
+        } else {
+            String subparams = "";
+            JavaClass javaClass = eachJavaParameterType.getJavaClass();
+            for (int j = 0; j < javaClass.getBeanProperties().length; j++) {
+                BeanProperty[] beanProperties = javaClass.getBeanProperties();
+                subparams = subparams + beanProperties[j].getName() + " : " + beanProperties[j].getType() + "\n";
+            }
+            if (subparams != "") {
+                t.setVariableOpt(variableOptName, subparams);
+            } else {
+                t.setVariableOpt(variableOptName, eachJavaParameterType.getGenericValue());
+            }
+        }
+    }
+
+    private void populateExceptions(Type[] exceptionsType, MiniTemplator t, JavaMethod method) {
+        if (exceptionsType.length == 0) {
+            t.setVariableOpt(SERVICE_EXCEPTIONS_VAR, getTagByName(method, "exception", ""));
+        } else {
+            String exceptionsTypes = "";
+            for (int i = 0; i < exceptionsType.length; i++) {
+                exceptionsTypes = exceptionsTypes + exceptionsType[i].getValue() + "\n";
+            }
+            t.setVariableOpt(SERVICE_EXCEPTIONS_VAR, exceptionsTypes);
+        }
+    }
+
+    private void populateSeeTag(MiniTemplator t, JavaMethod method) {
+        if (getTagByName(method, "see", "") != "") {
+            t.setVariableOpt(SERVICE_SEE_VAR, getTagByName(method, "see", ""));
+        } else {
+            t.setVariableOpt(SERVICE_SEE_VAR, "N/A");
+        }
+    }
+
+    private void populateInputParameters(MiniTemplator t, JavaMethod method) {
+        JavaParameter[] javaParameters = method.getParameters();
+
+        for (int i = 0; i < javaParameters.length; i++) {
+            JavaParameter eachJavaParameter = javaParameters[i];
+
+            Annotation[] annotations = eachJavaParameter.getAnnotations();
+            if (annotations.length > 0) {
+                String annotationType = annotations[0].getType().toString();
+                t.setVariableOpt(SERVICE_PARAMNAME_VAR, eachJavaParameter.getName() + " (" + annotationType + ")");
+            } else {
+                t.setVariableOpt(SERVICE_PARAMNAME_VAR, eachJavaParameter.getName());
+            }
+
+            t.setVariableOpt(SERVICE_PARAMTYPE_VAR, eachJavaParameter.getType().getValue());
+            populateParamDefault(eachJavaParameter.getType(), t, SERVICE_PARAMDEFAULT_VAR);
+            t.addBlock("parameters");
+        }
+    }
 
 
 }
