@@ -169,7 +169,7 @@ public class JAXRSWikiProcessor extends AbstractProcessor {
         
         String templateUri = optionMap.get(TEMPLATEURI_OPTION);
         if( templateUri==null ) {
-        	info("not template defined. Default is used!");
+            info("not template defined. Default is used!");
             template = getClass().getClassLoader().getResource("ConfluenceWikiTemplate.txt");
         }
         else {
