@@ -12,16 +12,11 @@
 
 ### Procedure:
 
-* Setup ```${java.home}```
-* Include processor plugin as given below in the ```pom.xml``` of the RestAPIs module. This is used to make processor ```org.bsc.jaxrs.JAXRSWikiProcessor``` available to maven.
+* Setup `${java.home}`
+
+* Include processor plugin as given below in the `pom.xml` of the RestAPIs module. This is used to make processor `org.bsc.jaxrs.JAXRSWikiProcessor` available to maven.
 
  ```xml
-  <!--
-  ===================================================================
-  PROCESSOR PLUGIN
-  ===================================================================
-  -->
-
   <build>
   <plugin>
   <groupId>org.bsc.maven</groupId>
@@ -189,10 +184,12 @@ current successful `maven-processor-plugin` version is `3.1.0` as given above in
 
   - check for execution id in the maven-processor-plugin. This id must have process like "<id>process</id>" if you are trying to generate documentation from java source.
 
-3.) Below error message in logs
+#### Below error message in logs
 
+```
 source directory [/Users/durgakumari/LatestCode/tpam_new/dhap-third-party-access-manager-service-api/src/test/java] doesn't exist! Processor task will be skipped!
 [WARNING] no source file(s) detected! Processor task will be skipped
+```
 
   - It seems you are trying to generate document on compiles classes. IF yes make sure you create test directory under source.
 If not, change maven-processor-plugin execution id from "<id>process</id>" to "<id>process-test</id>"
