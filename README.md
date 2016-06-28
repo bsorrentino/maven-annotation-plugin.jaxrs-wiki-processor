@@ -6,121 +6,123 @@
 
 <a href="http://search.maven.org/#search%7Cga%7C1%7Ca%3A%22jaxrs-wiki-processor%22"><img src="https://img.shields.io/maven-central/v/org.bsc/jaxrs-wiki-processor.svg"></a>&nbsp;</a><img src="https://img.shields.io/github/forks/bsorrentino/maven-annotation-plugin.jaxrs-wiki-processor.svg">&nbsp;<img src="https://img.shields.io/github/stars/bsorrentino/maven-annotation-plugin.jaxrs-wiki-processor.svg">&nbsp;<a href="https://github.com/bsorrentino/maven-annotation-plugin.jaxrs-wiki-processor/issues"><img src="https://img.shields.io/github/issues/bsorrentino/maven-annotation-plugin.jaxrs-wiki-processor.svg">
 
-
 ### Supported platform:
 
-  1. Java 1.7 and higher
+* Java 1.7 and higher
 
 ### Procedure:
 
-   1. Setup ${java.home}
+* Setup ```${java.home}```
+* Include processor plugin as given below in the ```pom.xml``` of the RestAPIs module. This is used to make processor ```org.bsc.jaxrs.JAXRSWikiProcessor``` available to maven.
 
-    2. Include processor plugin as given below in the pom.xml of the RestAPIs module. This is used to make processor 'org.bsc.jaxrs.JAXRSWikiProcessor' available to maven.
+ ```xml
+  <!--
+  ===================================================================
+  PROCESSOR PLUGIN
+  ===================================================================
+  -->
 
+  <build>
+  <plugin>
+  <groupId>org.bsc.maven</groupId>
+  <artifactId>maven-processor-plugin</artifactId>
+  <version>3.1.0</version>
+  <executions>
+      <execution>
 
+          <id>process</id>
+          <goals>
+                  <goal>process</goal>
+          </goals>
+          <configuration>
+                  <failOnError>false</failOnError>
+                  <processors>
+                          <!-- list of processors to use -->
+                  <processor>org.bsc.jaxrs.JAXRSWikiProcessor</processor>
+                  </processors>
 
-        <!--
-        ===================================================================
-        PROCESSOR PLUGIN
-        ===================================================================
-        -->
+              <options>
+                  <!-- Confluence html sample input template (fileName can be changed) -->
+                  <templateUri>file:///Users/username/RestApiInputTemplate.txt</templateUri>
+                  <!-- Confluence wiki format Rest APIs documentation output (fileName can be changed) -->
+                  <filepath>test.confluence</filepath>
+                  </options>
+              </configuration>
+      </execution>
+  </executions>
+  </plugin>
+  </plugins>
+  </build>
+ ```
 
-        <build>
-        <plugin>
-        <groupId>org.bsc.maven</groupId>
-        <artifactId>maven-processor-plugin</artifactId>
-        <version>3.1.0</version>
-        <executions>
-            <execution>
+* Add below dependency on pom.xml to identify the processor class.
 
-                <id>process</id>
-                <goals>
-                        <goal>process</goal>
-                </goals>
-                <configuration>
-                        <failOnError>false</failOnError>
-                        <processors>
-                                <!-- list of processors to use -->
-                        <processor>org.bsc.jaxrs.JAXRSWikiProcessor</processor>
-                        </processors>
+ ```xml
+    <dependency>
+        <groupId>org.bsc</groupId>
+        <artifactId>jaxrs-wiki-processor</artifactId>
+        <!-- This can be changed based on current version -->
+        <version>2.1</version>
+    </dependency>
+ ```
 
-                    <options>
-                        <!-- Confluence html sample input template (fileName can be changed) -->
-                        <templateUri>file:///Users/username/RestApiInputTemplate.txt</templateUri>
-                        <!-- Confluence wiki format Rest APIs documentation output (fileName can be changed) -->
-                        <filepath>test.confluence</filepath>
-                        </options>
-                    </configuration>
-            </execution>
-        </executions>
-        </plugin>
-        </plugins>
-        </build>
+* Create sample RestApiInputTemplate.txt for your project based on the documentation requirement. If not default template will be used. More information on the template configuration can be found below.
 
-3. Add below dependency on pom.xml to identify the processor class.
+* Run ```mvn clean install``` on the module where pom.xml is updated.
 
-        <dependency>
-            <groupId>org.bsc</groupId>
-            <artifactId>jaxrs-wiki-processor</artifactId>
-            <!-- This can be changed based on current version -->
-            <version>1.0</version>
-        </dependency>
+* Verify for target folder generated under the module. test.confluence file will be available under path
+```{module-name}/target/generated-sources/apt/test.confluence```
 
-  4. Create sample RestApiInputTemplate.txt for your project based on the documentation requirement. If not default template will be used. More information on the template configuration can be found below.
-
-   5. Run "mvn clean install" on the module where pom.xml is updated.
-
-   6. Verify for target folder generated under the module. test.confluence file will be available under path
-{module-name}/target/generated-sources/apt/test.confluence
-
-   7. Now test.confluence file can be uploaded using
-   "confluence-reporting-maven-plugin"(https://github.com/bsorrentino/maven-confluence-plugin) to confluence page when ever needed.
+* Now ```test.confluence``` file can be uploaded using
+   [confluence-reporting-maven-plugin](https://github.com/bsorrentino/maven-confluence-plugin) to confluence page when ever needed.
 
 
 ### Input Template Sample:
+
 Below is the sample RestApiInputTemplate.txt with all the tags that can be used.
 
+ ```
+  {info:title=Useful Information}
+  This page has been generated by [maven-processor-plugin|https://github.com/bsorrentino/maven-annotation-plugin.jaxrs-wiki-processor]
+  uploaded by [maven-confluence-plugin|https://github.com/bsorrentino/maven-confluence-plugin]
+  {info}
 
-        {info:title=Useful Information}
-        This page has been generated by [maven-processor-plugin|https://github.com/bsorrentino/maven-annotation-plugin.jaxrs-wiki-processor]
-        uploaded by [maven-confluence-plugin|https://github.com/bsorrentino/maven-confluence-plugin]
-        {info}
+  {toc}
 
-        {toc}
-
-        h1.REST APIs:
-        \\
-        <!-- $BeginBlock services --> *${service.class.name}*:
-        h2. ${service.name}
-        | Description: | ${service.description} |
-        | *Since:* |  ${service.since} |
-        | *Notes:* |  ${service.notes} |
-        | *Security:* |  ${service.security} |
-        | URL: |  ${service.path} |
-        | HTTP METHOD: | ${service.verb} |
-        | Consumes: | ${service.consumes} |
-        | Produces: | ${service.produces} |
-        | Response: | ${service.responsetype} {quote} | ${service.response} | {quote}|
-        | SuccessCode: | ${service.return} |
-        | Exceptions: | ${service.exception} |
-        | Input Parameters: | {quote}
-        || name: || type || default ||
-        <!-- $BeginBlock parameters -->| ${param.name} | ${param.type} | ${param.default} |
-        <!-- $EndBlock parameters -->
-        {quote}|
-        | PS: | {quote} | ${service.see} | {quote}|
-        \\
-        ----
-        <!-- $EndBlock services -->
-        \\
-        \\
-        \\
-        \\
+  h1.REST APIs:
+  \\
+  <!-- $BeginBlock services --> *${service.class.name}*:
+  h2. ${service.name}
+  | Description: | ${service.description} |
+  | *Since:* |  ${service.since} |
+  | *Notes:* |  ${service.notes} |
+  | *Security:* |  ${service.security} |
+  | URL: |  ${service.path} |
+  | HTTP METHOD: | ${service.verb} |
+  | Consumes: | ${service.consumes} |
+  | Produces: | ${service.produces} |
+  | Response: | ${service.responsetype} {quote} | ${service.response} | {quote}|
+  | SuccessCode: | ${service.return} |
+  | Exceptions: | ${service.exception} |
+  | Input Parameters: | {quote}
+  || name: || type || default ||
+  <!-- $BeginBlock parameters -->| ${param.name} | ${param.type} | ${param.default} |
+  <!-- $EndBlock parameters -->
+  {quote}|
+  | PS: | {quote} | ${service.see} | {quote}|
+  \\
+  ----
+  <!-- $EndBlock services -->
+  \\
+  \\
+  \\
+  \\
+ ```
 
 ### Explanation on tags used in the input template:
 
-1.) Tags based on Rest method declarations:
-- ${service.class.name}
+#### Tags based on Rest method declarations:
+- `${service.class.name}`
 - ${service.name}
 - ${service.description}
 - ${service.path}
@@ -134,8 +136,8 @@ Below is the sample RestApiInputTemplate.txt with all the tags that can be used.
 - ${param.type}
 - ${param.default}
 
-2.) Tags based on Documentation Annotations:
-- ${service.exception} <!-- if method documentation comments contains @exception -->
+#### Tags based on Documentation Annotations:
+- `${service.exception} <!-- if method documentation comments contains @exception -->`
 - ${service.return} <!-- if method documentation comments contains @return -->
 - ${service.since} <!-- if method documentation comments contains @since -->
 - ${service.notes} <!-- if method documentation comments contains @deprecated -->
@@ -155,31 +157,33 @@ can be included in existing applications as well, NO complexity involved.
 This plugin automatically gets the documentation information from the method declared, no need to add any specific documentation comments for this.
 
 ### Might be Con:
+
 Currently supported for below annotations...
-"javax.ws.rs.GET", "javax.ws.rs.PUT", "javax.ws.rs.POST", "javax.ws.rs.DELETE"
+`javax.ws.rs.GET`, `javax.ws.rs.PUT`, `javax.ws.rs.POST`, `javax.ws.rs.DELETE`
 (If needed more can be added based on the requirement)
 
 ### Know Issues faced during setup and Guidance on resolving:
 
-1.) Error in tools.jar dependency or tools.jar is not getting loaded by maven.
+#### Error in `tools.jar` dependency or `tools.jar` is not getting loaded by maven.
 
-- Make sure ${java.home} is setup. Try Using java1.7.x.
+- Make sure `${java.home}` is setup. Try Using java1.7.x.
 If still you are facing issue you can add below maven dependency based on java path in your system.
 
-        <dependency>
-            <groupId>jdk</groupId>
-            <artifactId>tools</artifactId>
-            <version>1.7</version>
-            <scope>system</scope>
-            <systemPath>/Library/Java/JavaVirtualMachines/jdk1.7.0_67.jdk/Contents/Home/lib/tools.jar</systemPath>
-        </dependency>
+ ```xml
+  <dependency>
+      <groupId>jdk</groupId>
+      <artifactId>tools</artifactId>
+      <version>1.7</version>
+      <scope>system</scope>
+      <systemPath>/Library/Java/JavaVirtualMachines/jdk1.7.0_67.jdk/Contents/Home/lib/tools.jar</systemPath>
+  </dependency>
+ ```
 
 
+#### Processor is not getting executed:
 
-2.) Processor is not getting executed:
-
-  - Try Changing configuration tags in the plugin based on "maven-processor-plugin" version.
-current succesful "maven-processor-plugin" version is 3.1.0 as given above in plugin.
+  - Try Changing configuration tags in the plugin based on `maven-processor-plugin` version.
+current successful `maven-processor-plugin` version is `3.1.0` as given above in plugin.
 
   - check for "maven-processor-plugin" in the console. If not found make sure you are running right pom.xml where the plugin is included.
 
@@ -195,11 +199,14 @@ If not, change maven-processor-plugin execution id from "<id>process</id>" to "<
 
   - Add "<compilerArgument>-proc:none</compilerArgument>" in maven compiler plugin. This make sures class files gets generated if you are running on classes using "process-test".
 
-4.) Unknown macro error while uploading to test.comfluence output file to Confluence.
+#### Unknown macro error while uploading to test.comfluence output file to Confluence.
 
-  - '{sampletext}' might be given in the documentation comments of the API. Try giving space after '{' or before '}' as below...
+  - `{sampletext}` might be given in the documentation comments of the API. Try giving space after '{' or before '}' as below...
 
-        {
-	        sample
-        }
+ ```
+  {
+    sample
+  }
+ ```       
+
 ### If this doesn't solve the issues, inform us and we will help you :).
