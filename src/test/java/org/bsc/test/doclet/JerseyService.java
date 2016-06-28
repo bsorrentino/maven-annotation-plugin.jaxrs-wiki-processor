@@ -79,4 +79,7 @@ public interface JerseyService {
     @Consumes(MediaType.APPLICATION_JSON)
     public POJOSample serviceTest2(@QueryParam("qparam") String qparam, POJOSample pojoSample, @PathParam("param1") Long param1);
 
+    @GET
+    @Path("/testservice2emptyInpt")
+    void serviceTest2();
 }
