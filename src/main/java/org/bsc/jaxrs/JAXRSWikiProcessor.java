@@ -538,6 +538,8 @@ public class JAXRSWikiProcessor extends AbstractProcessor {
 
                 t.setVariableOpt(SERVICE_PRODUCES_VAR, escape(Arrays.asList(value).toString()));
 
+            } else {
+                t.setVariableOpt(SERVICE_PRODUCES_VAR, "N/A");
             }
 
         }
@@ -553,6 +555,8 @@ public class JAXRSWikiProcessor extends AbstractProcessor {
 
                 t.setVariableOpt(SERVICE_CONSUMES_VAR, escape(Arrays.asList(value).toString()));
 
+            } else {
+                t.setVariableOpt(SERVICE_CONSUMES_VAR, "N/A");
             }
         }
 
@@ -628,20 +632,26 @@ public class JAXRSWikiProcessor extends AbstractProcessor {
 
     private void populateInputParameters(MiniTemplator t, JavaMethod method) {
         JavaParameter[] javaParameters = method.getParameters();
+        if (!(javaParameters.length == 0)) {
+            for (int i = 0; i < javaParameters.length; i++) {
+                JavaParameter eachJavaParameter = javaParameters[i];
 
-        for (int i = 0; i < javaParameters.length; i++) {
-            JavaParameter eachJavaParameter = javaParameters[i];
+                Annotation[] annotations = eachJavaParameter.getAnnotations();
+                if (annotations.length > 0) {
+                    String annotationType = annotations[0].getType().toString();
+                    t.setVariableOpt(SERVICE_PARAMNAME_VAR, eachJavaParameter.getName() + " (" + annotationType + ")");
+                } else {
+                    t.setVariableOpt(SERVICE_PARAMNAME_VAR, eachJavaParameter.getName());
+                }
 
-            Annotation[] annotations = eachJavaParameter.getAnnotations();
-            if (annotations.length > 0) {
-                String annotationType = annotations[0].getType().toString();
-                t.setVariableOpt(SERVICE_PARAMNAME_VAR, eachJavaParameter.getName() + " (" + annotationType + ")");
-            } else {
-                t.setVariableOpt(SERVICE_PARAMNAME_VAR, eachJavaParameter.getName());
+                t.setVariableOpt(SERVICE_PARAMTYPE_VAR, eachJavaParameter.getType().getValue());
+                populateParamDefault(eachJavaParameter.getType(), t, SERVICE_PARAMDEFAULT_VAR);
+                t.addBlock("parameters");
             }
-
-            t.setVariableOpt(SERVICE_PARAMTYPE_VAR, eachJavaParameter.getType().getValue());
-            populateParamDefault(eachJavaParameter.getType(), t, SERVICE_PARAMDEFAULT_VAR);
+        } else {
+            t.setVariableOpt(SERVICE_PARAMNAME_VAR, "N/A");
+            t.setVariableOpt(SERVICE_PARAMTYPE_VAR, "N/A");
+            t.setVariableOpt(SERVICE_PARAMDEFAULT_VAR, "N/A");
             t.addBlock("parameters");
         }
     }
