@@ -34,13 +34,13 @@
         <version>1.7</version>
         <scope>system</scope>
         <systemPath>${java.home}/../lib/tools.jar</systemPath>
-    </dependency>    
-      
+    </dependency>
+
     <dependency>
         <groupId>com.sun.jersey</groupId>
         <artifactId>jersey-core</artifactId>
         <version>1.11</version>
-    </dependency>    
+    </dependency>
 
     <dependency>
         <groupId>org.bsc.util</groupId>
@@ -53,7 +53,7 @@
         <artifactId>junit</artifactId>
         <version>4.10</version>
         <scope>test</scope>
-    </dependency>    
+    </dependency>
 
     <dependency>
       <groupId>com.thoughtworks.qdox</groupId>
@@ -64,11 +64,11 @@
   <inceptionYear>2012</inceptionYear>
   <description>generate wiki documentation from Jersey (JAXRS) annotations</description>
 
-  
+
 <build>
-    
+
 <plugins>
-    
+
     <plugin>
         <groupId>org.apache.maven.plugins</groupId>
         <artifactId>maven-compiler-plugin</artifactId>
@@ -84,12 +84,15 @@
         <artifactId>jgitflow-maven-plugin</artifactId>
         <version>1.0-m5.1</version>
         <configuration>
+            <flowInitContext>
+              <versionTagPrefix>v</versionTagPrefix>
+            </flowInitContext>
             <!-- see goals wiki page for configuration options -->
             <noDeploy>true</noDeploy>
         </configuration>
     </plugin>
-        
-<!-- 
+
+<!--
 ===================================================================
 PROCESSOR PLUGIN
 ===================================================================
@@ -121,7 +124,7 @@ PROCESSOR PLUGIN
     </plugin>
 
     <!--
-    
+
     mvn confluence-reporting:delete -Dconfluence.endPoint=../rpc/xmlrpc -Dconfluence.serverId=..
 
             -->
@@ -137,10 +140,10 @@ PROCESSOR PLUGIN
                     <templateWiki>${project.build.directory}/generated-sources/apt-test/test.confluence</templateWiki>
                 </configuration>
             </plugin>
-    
-        </plugins>    
-    
-    </build>  
+
+        </plugins>
+
+    </build>
 
     <distributionManagement>
         <repository>
