@@ -4,6 +4,9 @@
 
 "Just follow the coding standards, we will take care of the project documentation for you"
 
+<a href="http://search.maven.org/#search%7Cga%7C1%7Ca%3A%22jaxrs-wiki-processor%22"><img src="https://img.shields.io/maven-central/v/org.bsc/jaxrs-wiki-processor.svg"></a>&nbsp;</a><img src="https://img.shields.io/github/forks/bsorrentino/maven-annotation-plugin.jaxrs-wiki-processor.svg">&nbsp;<img src="https://img.shields.io/github/stars/bsorrentino/maven-annotation-plugin.jaxrs-wiki-processor.svg">&nbsp;<a href="https://github.com/bsorrentino/maven-annotation-plugin.jaxrs-wiki-processor/issues"><img src="https://img.shields.io/github/issues/bsorrentino/maven-annotation-plugin.jaxrs-wiki-processor.svg">
+
+
 ### Supported platform:
 
   1. Java 1.7 and higher
