@@ -114,7 +114,7 @@ h2. ${service.name}
 #### Tags based on Rest method declarations:
 
  variable | description
- -- | --
+ -------- | -----------
  `${service.class.name}` |
  `${service.name}` |
  `${service.description}` |
@@ -132,7 +132,7 @@ h2. ${service.name}
 #### Tags based on Documentation Annotations:
 
 variable | description
--- | --
+-------- | -----------
  `${service.exception}` | if method documentation comments contains `@exception`
  `${service.return}` | if method documentation comments contains `@return`
  `${service.since}` | if method documentation comments contains `@since`
