@@ -1,7 +1,7 @@
 
 ## JAVA ANNOTATION PROCESSOR TO GENERATE CONFLUENCE WIKI FROM JAX-RS ANNOTATION
 
-<a href="http://search.maven.org/#search%7Cga%7C1%7Ca%3A%22jaxrs-wiki-processor%22"><img src="https://img.shields.io/maven-central/v/org.bsc/jaxrs-wiki-processor.svg"></a>&nbsp;</a><img src="https://img.shields.io/github/forks/bsorrentino/maven-annotation-plugin.jaxrs-wiki-processor.svg">&nbsp;<img src="https://img.shields.io/github/stars/bsorrentino/maven-annotation-plugin.jaxrs-wiki-processor.svg">&nbsp;<a href="https://github.com/bsorrentino/maven-annotation-plugin.jaxrs-wiki-processor/issues"><img src="https://img.shields.io/github/issues/bsorrentino/maven-annotation-plugin.jaxrs-wiki-processor.svg">
+<a href="http://search.maven.org/#search%7Cga%7C1%7Ca%3A%22jaxrs-wiki-processor%22"><img src="https://img.shields.io/maven-central/v/org.bsc/jaxrs-wiki-processor.svg"></a>&nbsp;<img src="https://img.shields.io/github/forks/bsorrentino/maven-annotation-plugin.jaxrs-wiki-processor.svg">&nbsp;<img src="https://img.shields.io/github/stars/bsorrentino/maven-annotation-plugin.jaxrs-wiki-processor.svg">&nbsp;<a href="https://github.com/bsorrentino/maven-annotation-plugin.jaxrs-wiki-processor/issues"><img src="https://img.shields.io/github/issues/bsorrentino/maven-annotation-plugin.jaxrs-wiki-processor.svg"></a>
 
 **JAXRS-WIKI-PROCESSOR** is the simplest and developer friendly plugin to generates confluence wiki format from RestApis using the **JAX-RS ANNOTATION**.
 
@@ -17,7 +17,6 @@
 * Include processor plugin as given below in the **pom.xml** of the RestAPIs module. This is used to make processor **org.bsc.jaxrs.JAXRSWikiProcessor** available to maven.
 
  ```xml
-
   <build>
   <plugin>
   <groupId>org.bsc.maven</groupId>
@@ -188,8 +187,10 @@ current successful `maven-processor-plugin` version is `3.1.0` as given above in
 
 #### Below error message in logs
 
+```
 source directory [/Users/durgakumari/LatestCode/tpam_new/dhap-third-party-access-manager-service-api/src/test/java] doesn't exist! Processor task will be skipped!
 [WARNING] no source file(s) detected! Processor task will be skipped
+```
 
   - It seems you are trying to generate document on compiles classes. IF yes make sure you create test directory under source.
 If not, change maven-processor-plugin execution id from "<id>process</id>" to "<id>process-test</id>"
