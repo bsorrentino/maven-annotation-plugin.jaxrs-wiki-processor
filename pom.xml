@@ -24,7 +24,15 @@
            <email>bartolomeo.sorrentino@gmail.com</email>
        </developer>
    </developers>
-
+   <contributors>
+     <contributor>
+       <name>DurgaKumari</name>
+       <email>durga083@gmail.com</email>
+       <roles>
+         <role>Senior Software Developer</role>
+       </roles>
+       </contributor>
+    </contributors>
   <properties>
     <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
 
