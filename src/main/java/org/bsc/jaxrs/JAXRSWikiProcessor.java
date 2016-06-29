@@ -406,7 +406,13 @@ public class JAXRSWikiProcessor extends AbstractProcessor {
             t.setVariable(SERVICE_CLASSNAME_VAR, method.getParentClass().toString(), false);
             t.setVariable(SERVICE_NAME_VAR, methodElement.getSimpleName().toString(), false);
 
-            t.setVariable(SERVICE_DESCRIPTION_VAR, (comment != null) ? comment : "", true);
+            // replacing { with HTML readable by confluence otherwise confluence is considering it as macros and giving error
+            String modifiedComment = "";
+            if (comment != null) {
+                modifiedComment = comment.toString().replace("{", "&#123;").replace("}", "&#125;");
+            }
+
+            t.setVariable(SERVICE_DESCRIPTION_VAR, (modifiedComment != null) ? modifiedComment : "", true);
             t.setVariable(SERVICE_SINCE_VAR, getTagByName(method, "since", ""), true);
 
             t.setVariable(SERVICE_SECURITY_VAR, security, true);
@@ -418,7 +424,7 @@ public class JAXRSWikiProcessor extends AbstractProcessor {
             t.setVariableOpt(SERVICE_RETURNCODE_VAR, getTagByName(method, "return", ""));
             //populate exceptions
             populateExceptions(method.getExceptions(), t, method);
-            //populate see
+            //populate from @see
             populateSeeTag(t, method);
             //populate input parameters
             populateInputParameters(t, method);
