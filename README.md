@@ -115,31 +115,31 @@ h2. ${service.name}
 #### Tags based on Rest method declarations:
 
  variable | description
- -- | --
-`${service.class.name}` |
-`${service.name}` |
-`${service.description}` |
-`${service.path}` |
-`${service.verb}` |
-`${service.consumes}` |
-`${service.produces}` |
-`${service.responsetype}` |
-`${service.response}` |
-`${service.exception}`  | if method thows exceptions
-`${param.name}` |
-`${param.type}` |
-`${param.default}` |
+ -------- | -----------
+ `${service.class.name}` |
+ `${service.name}` |
+ `${service.description}` |
+ `${service.path}` |
+ `${service.verb}` |
+ `${service.consumes}` |
+ `${service.produces}` |
+ `${service.responsetype}` |
+ `${service.response}` |
+ `${service.exception}`  | if method thows exceptions
+ `${param.name}` |
+ `${param.type}` |
+ `${param.default}` |
 
 #### Tags based on Documentation Annotations:
 
 variable | description
--- | --
-`${service.exception}` | if method documentation comments contains `@exception`
-`${service.return}` | if method documentation comments contains `@return`
-`${service.since}` | if method documentation comments contains `@since`
-`${service.notes}` | if method documentation comments contains `@deprecated`
-`${service.see}`  | if method documentation comments contains `@see`
-`${service.security}` |
+-------- | -----------
+ `${service.exception}` | if method documentation comments contains `@exception`
+ `${service.return}` | if method documentation comments contains `@return`
+ `${service.since}` | if method documentation comments contains `@since`
+ `${service.notes}` | if method documentation comments contains `@deprecated`
+ `${service.see}`  | if method documentation comments contains `@see`
+ `${service.security}` |
 
 
 ### Pros:
