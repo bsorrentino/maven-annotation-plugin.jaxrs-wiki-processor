@@ -1,11 +1,13 @@
 
-## JAVA ANNOTATION PROCESSOR TO GENERATE CONFLUENCE WIKI FROM JAX-RS ANNOTATION
+## JAVA ANNOTATION PROCESSOR TO GENERATE WIKI DOCUMENTATION FROM JAX-RS ANNOTATION
 
 <a href="http://search.maven.org/#search%7Cga%7C1%7Ca%3A%22jaxrs-wiki-processor%22"><img src="https://img.shields.io/maven-central/v/org.bsc/jaxrs-wiki-processor.svg"></a>&nbsp;<img src="https://img.shields.io/github/forks/bsorrentino/maven-annotation-plugin.jaxrs-wiki-processor.svg">&nbsp;<img src="https://img.shields.io/github/stars/bsorrentino/maven-annotation-plugin.jaxrs-wiki-processor.svg">&nbsp;<a href="https://github.com/bsorrentino/maven-annotation-plugin.jaxrs-wiki-processor/issues"><img src="https://img.shields.io/github/issues/bsorrentino/maven-annotation-plugin.jaxrs-wiki-processor.svg"></a>
 
-**JAXRS-WIKI-PROCESSOR** is the simplest and developer friendly plugin to generates confluence wiki format from RestApis using the **JAX-RS ANNOTATION**.
+**JAXRS-WIKI-PROCESSOR** is the simplest and developer friendly plugin to generates wiki document from RestApis using the **JAX-RS ANNOTATION**.
 
 > Just follow the coding standards, we will take care of the project documentation for you
+> By default it will be generated using [Confluence Wiki Notation Guide](http://bsorrentino.github.io/maven-confluence-plugin/Notation%20Guide%20-%20Confluence.html)
+
 
 ### Supported platform
 
