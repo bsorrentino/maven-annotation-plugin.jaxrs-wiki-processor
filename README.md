@@ -57,9 +57,9 @@
  ```xml
     <dependency>
         <groupId>org.bsc</groupId>
-        <artifactId>jaxrs-wiki-processor</artifactId>
-        <!-- This can be changed based on current version -->
-        <version>2.1</version>
+        <artifactId>jaxrs-wiki-processor</artifactId>    
+        <version>2.2</version>
+        <optional>true</optional>
     </dependency>
  ```
 
