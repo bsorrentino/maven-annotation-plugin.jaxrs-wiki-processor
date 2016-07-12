@@ -16,47 +16,44 @@ import org.junit.Test;
 /**
  * Unit test for simple App.
  */
-public class ProcessorTest 
-{
-		
-    @Test 
+public class ProcessorTest {
+
+    @Test
     public void testURI() throws URISyntaxException {
 
-        final java.net.URI templateUriClasspath = new java.net.URI( "classpath:/src/test/resources/template.txt");
+        final java.net.URI templateUriClasspath = new java.net.URI("classpath:/src/test/resources/template.txt");
 
-        Assert.assertThat( templateUriClasspath.getScheme(), Is.is("classpath"));
+        Assert.assertThat(templateUriClasspath.getScheme(), Is.is("classpath"));
 
-        Assert.assertThat( templateUriClasspath.getPath(), Is.is("/src/test/resources/template.txt"));
+        Assert.assertThat(templateUriClasspath.getPath(), Is.is("/src/test/resources/template.txt"));
 
-        final java.net.URI templateUriFile = new java.net.URI( "file:///src/test/resources/template.txt");
+        final java.net.URI templateUriFile = new java.net.URI("file:///src/test/resources/template.txt");
 
-        Assert.assertThat( templateUriFile.getScheme(), Is.is("file"));
+        Assert.assertThat(templateUriFile.getScheme(), Is.is("file"));
 
-        Assert.assertThat( templateUriFile.getPath(), Is.is("/src/test/resources/template.txt"));
+        Assert.assertThat(templateUriFile.getPath(), Is.is("/src/test/resources/template.txt"));
     }
-        
-	@Test 
-        public void testDoclet() throws IOException  {
-    
-            final JavaDocBuilder builder = new JavaDocBuilder();
-	
-            builder.addSource( 
-                    Paths.get(  "src","test","java", 
-                                "org","bsc","test","doclet","POJOSample.java")
-                        .toFile() );
 
-            final JavaClass javaClass = builder.getClassByName( "org.bsc.test.doclet.POJOSample" );
+    @Test
+    public void testDoclet() throws IOException {
 
-            Assert.assertThat( javaClass , IsNull.notNullValue() );
-            
-            final BeanProperty[] properties = javaClass.getBeanProperties();
-            
-            Assert.assertThat( properties , IsNull.notNullValue() );
-            Assert.assertThat( properties.length , IsEqual.equalTo(2));
-            Assert.assertThat( properties[0].getName() , IsEqual.equalTo("stringObjVal"));
-            Assert.assertThat( properties[1].getName() , IsEqual.equalTo("testing"));
-            
-            
-            
-	}
+        final JavaDocBuilder builder = new JavaDocBuilder();
+
+        builder.addSource(
+                Paths.get("src", "test", "java",
+                        "org", "bsc", "test", "doclet", "POJOSample.java")
+                .toFile());
+
+        final JavaClass javaClass = builder.getClassByName("org.bsc.test.doclet.POJOSample");
+
+        Assert.assertThat(javaClass, IsNull.notNullValue());
+
+        final BeanProperty[] properties = javaClass.getBeanProperties();
+
+        Assert.assertThat(properties, IsNull.notNullValue());
+        Assert.assertThat(properties.length, IsEqual.equalTo(2));
+        Assert.assertThat(properties[0].getName(), IsEqual.equalTo("stringObjVal"));
+        Assert.assertThat(properties[1].getName(), IsEqual.equalTo("testing"));
+
+    }
 }
